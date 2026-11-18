@@ -64,7 +64,81 @@ button, input, select, textarea {
   font-family: inherit;
 }
 
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes spinBorder {
+  to { --border-angle: 360deg; }
+}
+
+@keyframes auroraDrift {
+  0% { transform: translate3d(-4%, -3%, 0) scale(1); }
+  50% { transform: translate3d(5%, 4%, 0) scale(1.08); }
+  100% { transform: translate3d(-4%, -3%, 0) scale(1); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseLogo {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.45), 0 18px 40px rgba(109, 40, 217, 0.3); }
+  50% { box-shadow: 0 0 0 12px rgba(147, 51, 234, 0), 0 22px 52px rgba(168, 85, 247, 0.48); }
+}
+
 /* Splash & Auth */
+.splash-screen,
+.auth-page,
+.onboarding-page {
+  position: relative;
+  overflow-x: hidden;
+  isolation: isolate;
+}
+
+.splash-screen::before,
+.auth-page::before,
+.onboarding-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -2;
+  background-image:
+    linear-gradient(to right, rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(168, 85, 247, 0.07) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 42%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 42%, #000 35%, transparent 100%);
+}
+
+[data-theme="light"] .splash-screen::before,
+[data-theme="light"] .auth-page::before,
+[data-theme="light"] .onboarding-page::before {
+  background-image:
+    linear-gradient(to right, rgba(109, 40, 217, 0.065) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(109, 40, 217, 0.065) 1px, transparent 1px);
+}
+
+.splash-screen::after,
+.auth-page::after,
+.onboarding-page::after {
+  content: "";
+  position: fixed;
+  inset: -25%;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 24% 24%, rgba(109, 40, 217, 0.28), transparent 36%),
+    radial-gradient(circle at 76% 68%, rgba(168, 85, 247, 0.2), transparent 38%),
+    radial-gradient(circle at 52% 18%, rgba(56, 189, 248, 0.12), transparent 34%);
+  filter: blur(42px);
+  animation: auroraDrift 16s ease-in-out infinite;
+}
+
 .splash-screen {
   min-height: 100vh;
   display: flex;
@@ -75,9 +149,17 @@ button, input, select, textarea {
   background: radial-gradient(circle at 50% 35%, rgba(109, 40, 217, 0.25), var(--bg) 60%);
 }
 
-.splash-logo { border-radius: 18px; }
+.splash-logo {
+  border-radius: 18px;
+  animation: pulseLogo 2.4s ease-in-out infinite;
+}
 .splash-title { font-size: 2.2rem; font-weight: 800; }
-.splash-title span { color: var(--purple-bright); }
+.splash-title span {
+  background: linear-gradient(120deg, #c084fc, #9333ea 55%, #38bdf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 .splash-tagline {
   margin: 0;
   font-size: 0.78rem;
@@ -92,18 +174,58 @@ button, input, select, textarea {
   justify-content: center;
   padding: 1.5rem;
   background:
-    radial-gradient(circle at 20% 15%, rgba(109, 40, 217, 0.22), transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.16), transparent 40%),
+    radial-gradient(circle at 20% 15%, rgba(109, 40, 217, 0.22), transparent 42%),
+    radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.16), transparent 42%),
     var(--bg);
 }
 
 .auth-card {
+  position: relative;
+  isolation: isolate;
   width: min(490px, 100%);
-  background: var(--bg-card);
+  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 2rem;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), 0 0 60px -20px rgba(147, 51, 234, 0.35);
+  animation: fadeSlideUp 0.35s ease-out;
+  --mx: 50%;
+  --my: 0%;
+}
+
+.auth-card::before,
+.hero-banner::before,
+.card.hi::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--border-angle),
+    transparent 0deg,
+    rgba(168, 85, 247, 0.7) 55deg,
+    rgba(56, 189, 248, 0.45) 110deg,
+    transparent 175deg,
+    rgba(109, 40, 217, 0.55) 260deg,
+    transparent 335deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+  animation: spinBorder 7s linear infinite;
+}
+
+.auth-card > *,
+.hero-banner > *,
+.card > *,
+.kpi-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .auth-tabs {
@@ -490,10 +612,31 @@ button, input, select, textarea {
 
 /* Cards & Banners */
 .hero-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background: linear-gradient(135deg, rgba(109, 40, 217, 0.28), rgba(147, 51, 234, 0.12) 55%, var(--bg-card));
   border: 1px solid var(--border-hi);
   border-radius: var(--radius-lg);
   padding: 1.35rem 1.5rem;
+  box-shadow: 0 18px 44px -22px rgba(147, 51, 234, 0.45);
+  animation: fadeSlideUp 0.28s ease-out;
+  --mx: 50%;
+  --my: 50%;
+}
+
+.hero-banner h2 {
+  background: linear-gradient(115deg, #ffffff 25%, #e9d5ff 65%, #a855f7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-theme="light"] .hero-banner h2 {
+  background: linear-gradient(115deg, #0f172a 20%, #6d28d9 70%, #9333ea 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .badge {
@@ -515,11 +658,25 @@ button, input, select, textarea {
 .badge.rose { background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.35); color: var(--rose); }
 .badge.sky { background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: var(--sky); }
 
+.card,
+.kpi-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  --mx: 50%;
+  --my: 50%;
+}
+
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 1.15rem 1.25rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--purple-bright) 34%, var(--border));
 }
 
 .card.hi {
@@ -527,10 +684,48 @@ button, input, select, textarea {
   border-color: var(--border-hi);
 }
 
+.auth-card::after,
+.hero-banner::after,
+.card::after,
+.kpi-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    360px circle at var(--mx) var(--my),
+    rgba(168, 85, 247, 0.14),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.24s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="light"] .auth-card::after,
+[data-theme="light"] .hero-banner::after,
+[data-theme="light"] .card::after,
+[data-theme="light"] .kpi-card::after {
+  background: radial-gradient(
+    340px circle at var(--mx) var(--my),
+    rgba(109, 40, 217, 0.08),
+    transparent 65%
+  );
+}
+
+.auth-card:hover::after,
+.hero-banner:hover::after,
+.card:hover::after,
+.kpi-card:hover::after {
+  opacity: 1;
+}
+
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.9rem;
+  perspective: 900px;
 }
 
 .kpi-card {
@@ -539,12 +734,17 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   padding: 1rem 1.1rem;
   cursor: pointer;
-  transition: border-color 0.16s ease, transform 0.16s ease;
+  --rx: 0deg;
+  --ry: 0deg;
+  transform: perspective(700px) rotateX(var(--rx)) rotateY(var(--ry));
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  will-change: transform;
 }
 
 .kpi-card:hover {
   border-color: var(--border-hi);
-  transform: translateY(-2px);
+  transform: perspective(700px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(-3px);
+  box-shadow: 0 14px 32px -16px rgba(147, 51, 234, 0.55);
 }
 
 .kpi-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
@@ -584,14 +784,18 @@ button, input, select, textarea {
   border-radius: var(--radius-sm);
   padding: 0.62rem 0.8rem;
   font-size: 0.92rem;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
 .input:focus, .select:focus, .textarea:focus {
   outline: none;
   border-color: var(--purple-bright);
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.18);
 }
 
 .btn {
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -602,12 +806,34 @@ button, input, select, textarea {
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.14s ease;
+  transition: all 0.16s ease;
 }
 
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-primary { background: linear-gradient(135deg, var(--violet), var(--purple)); color: #fff; }
-.btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--violet), var(--purple));
+  color: #fff;
+  box-shadow: 0 8px 24px -8px rgba(147, 51, 234, 0.65);
+}
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 45%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: rotate(24deg);
+  transition: left 0.55s ease;
+  pointer-events: none;
+}
+.btn-primary:hover:not(:disabled)::after {
+  left: 125%;
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 10px 28px -6px rgba(168, 85, 247, 0.78);
+}
 .btn-emerald { background: var(--emerald); color: #052e16; }
 .btn-outline { background: var(--bg-subtle); color: var(--text); border-color: var(--border); }
 .btn-outline:hover:not(:disabled) { border-color: var(--border-hi); background: var(--purple-soft); }
@@ -721,4 +947,25 @@ button, input, select, textarea {
   }
   .mobile-drawer-btn { display: inline-flex; }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+.main-area {
+  background: radial-gradient(ellipse 80% 420px at 50% -140px, rgba(109, 40, 217, 0.14), transparent 72%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-screen::after,
+  .auth-page::after,
+  .onboarding-page::after,
+  .splash-logo,
+  .auth-card,
+  .hero-banner,
+  .auth-card::before,
+  .hero-banner::before,
+  .card.hi::before {
+    animation: none !important;
+  }
+  .btn-primary::after {
+    display: none;
+  }
 }
