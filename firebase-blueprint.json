@@ -1,0 +1,293 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated MarketOS user profile, active business pointer, subscription tier, and monthly AI usage counters.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID matching path userId" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "email": { "type": "string", "description": "User email address" },
+        "subscriptionTier": { "type": "string", "enum": ["STARTER", "GROWTH", "BUSINESS"] },
+        "activeBusinessId": { "type": "string", "description": "Currently selected business workspace ID or empty string" },
+        "aiGenerationsThisMonth": { "type": "integer", "description": "Number of AI generations in the current billing cycle" },
+        "aiTokenCountThisMonth": { "type": "integer", "description": "Estimated AI tokens consumed in the current billing cycle" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp on creation" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp on update" }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "email",
+        "subscriptionTier",
+        "activeBusinessId",
+        "aiGenerationsThisMonth",
+        "aiTokenCountThisMonth",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BusinessWorkspace": {
+      "title": "BusinessWorkspace",
+      "description": "International business workspace with country, location, currency, regional formatting, and brand memory.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "industry": { "type": "string" },
+        "countryCode": { "type": "string" },
+        "countryName": { "type": "string" },
+        "stateRegion": { "type": "string" },
+        "city": { "type": "string" },
+        "postalCode": { "type": "string" },
+        "address": { "type": "string" },
+        "websiteUrl": { "type": "string" },
+        "billingCurrency": { "type": "string" },
+        "displayCurrency": { "type": "string" },
+        "language": { "type": "string" },
+        "timeZone": { "type": "string" },
+        "dateFormat": { "type": "string" },
+        "numberFormat": { "type": "string" },
+        "brandVoice": { "type": "string" },
+        "targetAudience": { "type": "string" },
+        "brandGuidelines": { "type": "string" },
+        "visualDirection": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "name",
+        "industry",
+        "countryCode",
+        "countryName",
+        "stateRegion",
+        "city",
+        "postalCode",
+        "address",
+        "websiteUrl",
+        "billingCurrency",
+        "displayCurrency",
+        "language",
+        "timeZone",
+        "dateFormat",
+        "numberFormat",
+        "brandVoice",
+        "targetAudience",
+        "brandGuidelines",
+        "visualDirection",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MarketingCampaign": {
+      "title": "MarketingCampaign",
+      "description": "Marketing campaign belonging to a business workspace.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "businessId": { "type": "string" },
+        "title": { "type": "string" },
+        "objective": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "ACTIVE", "PAUSED", "ARCHIVED"] },
+        "platforms": { "type": "array", "description": "Target channels (max 10)" },
+        "budgetAmount": { "type": "number" },
+        "budgetCurrency": { "type": "string" },
+        "spentAmount": { "type": "number" },
+        "startDateEpoch": { "type": "integer" },
+        "endDateEpoch": { "type": "integer" },
+        "strategySummary": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "businessId",
+        "title",
+        "objective",
+        "status",
+        "platforms",
+        "budgetAmount",
+        "budgetCurrency",
+        "spentAmount",
+        "startDateEpoch",
+        "endDateEpoch",
+        "strategySummary",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ContentItem": {
+      "title": "ContentItem",
+      "description": "AI-generated or user-authored marketing content subject to approval and scheduling gates.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "businessId": { "type": "string" },
+        "campaignId": { "type": "string" },
+        "contentType": {
+          "type": "string",
+          "enum": ["SOCIAL_POST", "CAPTION", "EMAIL_DRAFT", "BLOG_OUTLINE", "AD_COPY", "CREATIVE_BRIEF", "SEO_META"]
+        },
+        "platform": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "hashtags": { "type": "string" },
+        "approvalStatus": {
+          "type": "string",
+          "enum": ["DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "SCHEDULED", "PUBLISHED", "FAILED"]
+        },
+        "rejectionReason": { "type": "string" },
+        "scheduledEpochMillis": { "type": "integer" },
+        "scheduledTimeZone": { "type": "string" },
+        "publishError": { "type": "string" },
+        "aiModule": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "businessId",
+        "campaignId",
+        "contentType",
+        "platform",
+        "title",
+        "body",
+        "hashtags",
+        "approvalStatus",
+        "rejectionReason",
+        "scheduledEpochMillis",
+        "scheduledTimeZone",
+        "publishError",
+        "aiModule",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ChannelIntegration": {
+      "title": "ChannelIntegration",
+      "description": "Extensible official channel integration state for a business workspace.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "businessId": { "type": "string" },
+        "provider": {
+          "type": "string",
+          "enum": ["INSTAGRAM", "FACEBOOK", "YOUTUBE", "EMAIL_PROVIDER", "GOOGLE_ANALYTICS", "WEBSITE_ANALYTICS"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["DISCONNECTED", "PENDING_OAUTH", "CONNECTED", "UNAVAILABLE"]
+        },
+        "accountLabel": { "type": "string" },
+        "permissionStatus": { "type": "string" },
+        "lastError": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "businessId",
+        "provider",
+        "status",
+        "accountLabel",
+        "permissionStatus",
+        "lastError",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AiMessage": {
+      "title": "AiMessage",
+      "description": "Persistent conversation message in the MarketOS AI Assistant.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "businessId": { "type": "string" },
+        "role": { "type": "string", "enum": ["USER", "ASSISTANT"] },
+        "moduleUsed": { "type": "string" },
+        "messageText": { "type": "string" },
+        "structuredPreview": { "type": "string" },
+        "attachmentLabel": { "type": "string" },
+        "tokensEstimated": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "businessId",
+        "role",
+        "moduleUsed",
+        "messageText",
+        "structuredPreview",
+        "attachmentLabel",
+        "tokensEstimated",
+        "createdAt"
+      ]
+    },
+    "AnalyticsRecord": {
+      "title": "AnalyticsRecord",
+      "description": "Campaign performance and spend record explicitly flagged as actual or estimated.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "businessId": { "type": "string" },
+        "campaignId": { "type": "string" },
+        "actualData": { "type": "boolean" },
+        "sourceLabel": { "type": "string" },
+        "periodLabel": { "type": "string" },
+        "impressions": { "type": "integer" },
+        "clicks": { "type": "integer" },
+        "conversions": { "type": "integer" },
+        "spendAmount": { "type": "number" },
+        "spendCurrency": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "businessId",
+        "campaignId",
+        "actualData",
+        "sourceLabel",
+        "periodLabel",
+        "impressions",
+        "clicks",
+        "conversions",
+        "spendAmount",
+        "spendCurrency",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Authenticated user profile and AI usage tracking."
+    },
+    "/users/{userId}/businesses/{businessId}": {
+      "schema": { "$ref": "#/entities/BusinessWorkspace" },
+      "description": "Business workspaces owned by the user."
+    },
+    "/users/{userId}/campaigns/{campaignId}": {
+      "schema": { "$ref": "#/entities/MarketingCampaign" },
+      "description": "Marketing campaigns scoped to user and business."
+    },
+    "/users/{userId}/content_items/{contentId}": {
+      "schema": { "$ref": "#/entities/ContentItem" },
+      "description": "Content items, approval workflow states, and scheduled queue items."
+    },
+    "/users/{userId}/integrations/{integrationId}": {
+      "schema": { "$ref": "#/entities/ChannelIntegration" },
+      "description": "Channel integration connection and status metadata."
+    },
+    "/users/{userId}/ai_messages/{messageId}": {
+      "schema": { "$ref": "#/entities/AiMessage" },
+      "description": "AI Assistant conversation history per business."
+    },
+    "/users/{userId}/analytics_records/{recordId}": {
+      "schema": { "$ref": "#/entities/AnalyticsRecord" },
+      "description": "Marketing performance and spend records."
+    }
+  }
+}

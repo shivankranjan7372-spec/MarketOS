@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MarketOS" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@color/marketos_splash_bg</item>
+    </style>
+</resources>

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MarketOS</string>
+    <string name="brand_tagline">Plan. Create. Grow.</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="sign_out">Sign out</string>
+    <string name="onboarding_title">Set up your business workspace</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+</resources>

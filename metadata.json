@@ -1,0 +1,6 @@
+{
+  "name": "MarketOS",
+  "description": "AI-powered marketing department for small businesses worldwide — Plan. Create. Grow.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

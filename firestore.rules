@@ -1,0 +1,416 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: deny everything by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    function businessExists(userId, businessId) {
+      return isValidId(businessId) &&
+             existsAfter(/databases/$(database)/documents/users/$(userId)/businesses/$(businessId));
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
+             data.email is string && data.email.size() >= 0 && data.email.size() <= 150 &&
+             data.subscriptionTier in ['STARTER', 'GROWTH', 'BUSINESS'] &&
+             data.activeBusinessId is string && data.activeBusinessId.size() <= 128 &&
+             data.aiGenerationsThisMonth is int && data.aiGenerationsThisMonth >= 0 && data.aiGenerationsThisMonth <= 1000000 &&
+             data.aiTokenCountThisMonth is int && data.aiTokenCountThisMonth >= 0 && data.aiTokenCountThisMonth <= 100000000 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidBusiness(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.industry is string && data.industry.size() >= 1 && data.industry.size() <= 80 &&
+             data.countryCode is string && data.countryCode.size() >= 2 && data.countryCode.size() <= 4 &&
+             data.countryName is string && data.countryName.size() >= 1 && data.countryName.size() <= 80 &&
+             data.stateRegion is string && data.stateRegion.size() <= 80 &&
+             data.city is string && data.city.size() <= 80 &&
+             data.postalCode is string && data.postalCode.size() <= 24 &&
+             data.address is string && data.address.size() <= 200 &&
+             data.websiteUrl is string && data.websiteUrl.size() <= 300 &&
+             data.billingCurrency is string && data.billingCurrency.size() == 3 &&
+             data.displayCurrency is string && data.displayCurrency.size() == 3 &&
+             data.language is string && data.language.size() >= 1 && data.language.size() <= 40 &&
+             data.timeZone is string && data.timeZone.size() >= 1 && data.timeZone.size() <= 64 &&
+             data.dateFormat is string && data.dateFormat.size() >= 1 && data.dateFormat.size() <= 32 &&
+             data.numberFormat is string && data.numberFormat.size() >= 1 && data.numberFormat.size() <= 32 &&
+             data.brandVoice is string && data.brandVoice.size() <= 1000 &&
+             data.targetAudience is string && data.targetAudience.size() <= 1000 &&
+             data.brandGuidelines is string && data.brandGuidelines.size() <= 2000 &&
+             data.visualDirection is string && data.visualDirection.size() <= 1000 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidCampaign(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             isValidId(data.businessId) &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 140 &&
+             data.objective is string && data.objective.size() <= 500 &&
+             data.status in ['DRAFT', 'ACTIVE', 'PAUSED', 'ARCHIVED'] &&
+             data.platforms is list && data.platforms.size() <= 10 &&
+             (data.platforms.size() == 0 || data.platforms[0] is string) &&
+             data.budgetAmount is number && data.budgetAmount >= 0 &&
+             data.budgetCurrency is string && data.budgetCurrency.size() == 3 &&
+             data.spentAmount is number && data.spentAmount >= 0 &&
+             data.startDateEpoch is int && data.startDateEpoch >= 0 &&
+             data.endDateEpoch is int && data.endDateEpoch >= 0 &&
+             data.strategySummary is string && data.strategySummary.size() <= 4000 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidContentItem(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             isValidId(data.businessId) &&
+             data.campaignId is string && data.campaignId.size() <= 128 &&
+             data.contentType in ['SOCIAL_POST', 'CAPTION', 'EMAIL_DRAFT', 'BLOG_OUTLINE', 'AD_COPY', 'CREATIVE_BRIEF', 'SEO_META'] &&
+             data.platform is string && data.platform.size() >= 1 && data.platform.size() <= 40 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+             data.body is string && data.body.size() >= 1 && data.body.size() <= 8000 &&
+             data.hashtags is string && data.hashtags.size() <= 500 &&
+             data.approvalStatus in ['DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'SCHEDULED', 'PUBLISHED', 'FAILED'] &&
+             data.rejectionReason is string && data.rejectionReason.size() <= 500 &&
+             data.scheduledEpochMillis is int && data.scheduledEpochMillis >= 0 &&
+             data.scheduledTimeZone is string && data.scheduledTimeZone.size() <= 64 &&
+             data.publishError is string && data.publishError.size() <= 500 &&
+             data.aiModule is string && data.aiModule.size() <= 64 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidIntegration(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             isValidId(data.businessId) &&
+             data.provider in ['INSTAGRAM', 'FACEBOOK', 'YOUTUBE', 'EMAIL_PROVIDER', 'GOOGLE_ANALYTICS', 'WEBSITE_ANALYTICS'] &&
+             data.status in ['DISCONNECTED', 'PENDING_OAUTH', 'CONNECTED', 'UNAVAILABLE'] &&
+             data.accountLabel is string && data.accountLabel.size() <= 120 &&
+             data.permissionStatus is string && data.permissionStatus.size() <= 200 &&
+             data.lastError is string && data.lastError.size() <= 500 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidAiMessage(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             isValidId(data.businessId) &&
+             data.role in ['USER', 'ASSISTANT'] &&
+             data.moduleUsed is string && data.moduleUsed.size() <= 64 &&
+             data.messageText is string && data.messageText.size() >= 1 && data.messageText.size() <= 12000 &&
+             data.structuredPreview is string && data.structuredPreview.size() <= 4000 &&
+             data.attachmentLabel is string && data.attachmentLabel.size() <= 200 &&
+             data.tokensEstimated is int && data.tokensEstimated >= 0 && data.tokensEstimated <= 1000000 &&
+             isValidTimestamp(data.createdAt);
+    }
+
+    function isValidAnalyticsRecord(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             isValidId(data.businessId) &&
+             data.campaignId is string && data.campaignId.size() <= 128 &&
+             data.actualData is bool &&
+             data.sourceLabel is string && data.sourceLabel.size() >= 1 && data.sourceLabel.size() <= 80 &&
+             data.periodLabel is string && data.periodLabel.size() >= 1 && data.periodLabel.size() <= 60 &&
+             data.impressions is int && data.impressions >= 0 &&
+             data.clicks is int && data.clicks >= 0 &&
+             data.conversions is int && data.conversions >= 0 &&
+             data.spendAmount is number && data.spendAmount >= 0 &&
+             data.spendCurrency is string && data.spendCurrency.size() == 3 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false;
+
+      allow create: if isOwner(userId) && isValidId(userId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'email', 'subscriptionTier',
+                         'activeBusinessId', 'aiGenerationsThisMonth', 'aiTokenCountThisMonth',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'email', 'subscriptionTier',
+                         'activeBusinessId', 'aiGenerationsThisMonth', 'aiTokenCountThisMonth',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidUserProfile(incoming(), userId);
+
+      allow update: if isOwner(userId) && isValidId(userId) &&
+                       isValidUserProfile(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         incoming().diff(existing()).affectedKeys().hasOnly(['activeBusinessId', 'updatedAt']) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'subscriptionTier', 'updatedAt']) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly(['aiGenerationsThisMonth', 'aiTokenCountThisMonth', 'updatedAt'])
+                       );
+
+      allow delete: if false;
+
+      match /businesses/{businessId} {
+        allow get: if isOwner(userId) && isValidId(businessId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) && isValidId(businessId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'name', 'industry', 'countryCode', 'countryName',
+                           'stateRegion', 'city', 'postalCode', 'address', 'websiteUrl',
+                           'billingCurrency', 'displayCurrency', 'language', 'timeZone',
+                           'dateFormat', 'numberFormat', 'brandVoice', 'targetAudience',
+                           'brandGuidelines', 'visualDirection', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'name', 'industry', 'countryCode', 'countryName',
+                           'stateRegion', 'city', 'postalCode', 'address', 'websiteUrl',
+                           'billingCurrency', 'displayCurrency', 'language', 'timeZone',
+                           'dateFormat', 'numberFormat', 'brandVoice', 'targetAudience',
+                           'brandGuidelines', 'visualDirection', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidBusiness(incoming(), userId);
+
+        allow update: if isOwner(userId) && isValidId(businessId) &&
+                         isValidBusiness(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().billingCurrency == existing().billingCurrency &&
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'name', 'industry', 'countryCode', 'countryName',
+                             'stateRegion', 'city', 'postalCode', 'address', 'websiteUrl',
+                             'displayCurrency', 'language', 'timeZone', 'dateFormat',
+                             'numberFormat', 'updatedAt'
+                           ]) ||
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'brandVoice', 'targetAudience', 'brandGuidelines',
+                             'visualDirection', 'updatedAt'
+                           ])
+                         );
+
+        allow delete: if isOwner(userId) && isValidId(businessId);
+      }
+
+      match /campaigns/{campaignId} {
+        allow get: if isOwner(userId) && isValidId(campaignId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) && isValidId(campaignId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'businessId', 'title', 'objective', 'status',
+                           'platforms', 'budgetAmount', 'budgetCurrency', 'spentAmount',
+                           'startDateEpoch', 'endDateEpoch', 'strategySummary',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'businessId', 'title', 'objective', 'status',
+                           'platforms', 'budgetAmount', 'budgetCurrency', 'spentAmount',
+                           'startDateEpoch', 'endDateEpoch', 'strategySummary',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidCampaign(incoming(), userId) &&
+                         businessExists(userId, incoming().businessId);
+
+        allow update: if isOwner(userId) && isValidId(campaignId) &&
+                         isValidCampaign(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().businessId == existing().businessId &&
+                         incoming().createdAt == existing().createdAt &&
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'title', 'objective', 'status', 'platforms',
+                             'budgetAmount', 'budgetCurrency', 'spentAmount',
+                             'startDateEpoch', 'endDateEpoch', 'strategySummary', 'updatedAt'
+                           ]) ||
+                           incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+                         );
+
+        allow delete: if isOwner(userId) && isValidId(campaignId);
+      }
+
+      match /content_items/{contentId} {
+        allow get: if isOwner(userId) && isValidId(contentId);
+        allow list: if isOwner(userId);
+
+        // Enforce that newly created items start as DRAFT or PENDING_APPROVAL (never directly SCHEDULED or PUBLISHED)
+        allow create: if isOwner(userId) && isValidId(contentId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'businessId', 'campaignId', 'contentType', 'platform',
+                           'title', 'body', 'hashtags', 'approvalStatus', 'rejectionReason',
+                           'scheduledEpochMillis', 'scheduledTimeZone', 'publishError',
+                           'aiModule', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'businessId', 'campaignId', 'contentType', 'platform',
+                           'title', 'body', 'hashtags', 'approvalStatus', 'rejectionReason',
+                           'scheduledEpochMillis', 'scheduledTimeZone', 'publishError',
+                           'aiModule', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidContentItem(incoming(), userId) &&
+                         incoming().approvalStatus in ['DRAFT', 'PENDING_APPROVAL'] &&
+                         businessExists(userId, incoming().businessId);
+
+        // Action-based update gates: enforce approval workflow before scheduling/publishing
+        allow update: if isOwner(userId) && isValidId(contentId) &&
+                         isValidContentItem(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().businessId == existing().businessId &&
+                         incoming().createdAt == existing().createdAt &&
+                         existing().approvalStatus != 'PUBLISHED' &&
+                         (
+                           // Action: Edit draft/rejected content or submit for approval
+                           (
+                             incoming().approvalStatus in ['DRAFT', 'PENDING_APPROVAL'] &&
+                             incoming().diff(existing()).affectedKeys().hasOnly([
+                               'title', 'body', 'hashtags', 'platform', 'contentType',
+                               'campaignId', 'approvalStatus', 'rejectionReason', 'updatedAt'
+                             ])
+                           ) ||
+                           // Action: Owner approval / rejection decision
+                           (
+                             incoming().approvalStatus in ['APPROVED', 'REJECTED', 'DRAFT'] &&
+                             incoming().diff(existing()).affectedKeys().hasOnly([
+                               'approvalStatus', 'rejectionReason', 'updatedAt'
+                             ])
+                           ) ||
+                           // Action: Schedule approved content (or retry failed item)
+                           (
+                             existing().approvalStatus in ['APPROVED', 'SCHEDULED', 'FAILED'] &&
+                             incoming().approvalStatus == 'SCHEDULED' &&
+                             incoming().scheduledEpochMillis > 0 &&
+                             incoming().diff(existing()).affectedKeys().hasOnly([
+                               'approvalStatus', 'scheduledEpochMillis', 'scheduledTimeZone',
+                               'publishError', 'updatedAt'
+                             ])
+                           ) ||
+                           // Action: Mark published or failed from scheduled state
+                           (
+                             existing().approvalStatus == 'SCHEDULED' &&
+                             incoming().approvalStatus in ['PUBLISHED', 'FAILED', 'APPROVED'] &&
+                             incoming().diff(existing()).affectedKeys().hasOnly([
+                               'approvalStatus', 'publishError', 'updatedAt'
+                             ])
+                           )
+                         );
+
+        allow delete: if isOwner(userId) && isValidId(contentId);
+      }
+
+      match /integrations/{integrationId} {
+        allow get: if isOwner(userId) && isValidId(integrationId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) && isValidId(integrationId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'businessId', 'provider', 'status',
+                           'accountLabel', 'permissionStatus', 'lastError',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'businessId', 'provider', 'status',
+                           'accountLabel', 'permissionStatus', 'lastError',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidIntegration(incoming(), userId) &&
+                         businessExists(userId, incoming().businessId);
+
+        allow update: if isOwner(userId) && isValidId(integrationId) &&
+                         isValidIntegration(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().businessId == existing().businessId &&
+                         incoming().provider == existing().provider &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'status', 'accountLabel', 'permissionStatus', 'lastError', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(integrationId);
+      }
+
+      match /ai_messages/{messageId} {
+        allow get: if isOwner(userId) && isValidId(messageId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) && isValidId(messageId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'businessId', 'role', 'moduleUsed',
+                           'messageText', 'structuredPreview', 'attachmentLabel',
+                           'tokensEstimated', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'businessId', 'role', 'moduleUsed',
+                           'messageText', 'structuredPreview', 'attachmentLabel',
+                           'tokensEstimated', 'createdAt'
+                         ]) &&
+                         isValidAiMessage(incoming(), userId) &&
+                         businessExists(userId, incoming().businessId);
+
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(messageId);
+      }
+
+      match /analytics_records/{recordId} {
+        allow get: if isOwner(userId) && isValidId(recordId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) && isValidId(recordId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'businessId', 'campaignId', 'actualData',
+                           'sourceLabel', 'periodLabel', 'impressions', 'clicks',
+                           'conversions', 'spendAmount', 'spendCurrency',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'businessId', 'campaignId', 'actualData',
+                           'sourceLabel', 'periodLabel', 'impressions', 'clicks',
+                           'conversions', 'spendAmount', 'spendCurrency',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidAnalyticsRecord(incoming(), userId) &&
+                         businessExists(userId, incoming().businessId);
+
+        allow update: if isOwner(userId) && isValidId(recordId) &&
+                         isValidAnalyticsRecord(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().businessId == existing().businessId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'actualData', 'sourceLabel', 'periodLabel',
+                           'impressions', 'clicks', 'conversions',
+                           'spendAmount', 'spendCurrency', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(recordId);
+      }
+    }
+  }
+}

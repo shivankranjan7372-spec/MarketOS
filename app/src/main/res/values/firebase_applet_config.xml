@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <string name="firestore_database_id" translatable="false">ai-studio-android-marketos-39516276-33b3-4d1c-af29-438871fb0c87</string>
+    <string name="recaptcha_site_key" translatable="false">6LcuEiUuAAAAAGNhLuJcqw3r2zPvOyGlGY8IG8m7</string>
+</resources>
