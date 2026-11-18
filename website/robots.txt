@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://marketosai.vercel.app/sitemap.xml
