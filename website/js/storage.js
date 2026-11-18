@@ -13,6 +13,7 @@ export const DEFAULT_FIREBASE_CONFIG = {
 const STORAGE_KEYS = {
   SESSION_MODE: "marketos_session_mode",
   LOCAL_USER: "marketos_local_user",
+  LOCAL_ACCOUNTS: "marketos_local_accounts",
   LOCAL_DB_PREFIX: "marketos_local_db_",
   THEME: "marketos_theme",
   FIREBASE_APP_ID: "marketos_firebase_web_app_id",
@@ -25,6 +26,23 @@ function uidGen(prefix = "id") {
     return `${prefix}_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
   }
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function hashPassword(password, salt) {
+  const input = `${salt}:${password}`;
+  if (typeof crypto !== "undefined" && crypto.subtle) {
+    const buf = new TextEncoder().encode(input);
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+  let h = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(16);
 }
 
 export function getSavedPreferences() {
@@ -141,18 +159,138 @@ export class MarketOsWebStore {
     };
   }
 
-  signInLocalWorkspace(name, email) {
-    const cleanEmail = String(email || "owner@marketos.local").trim().toLowerCase();
+  _readAccounts() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.LOCAL_ACCOUNTS);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  _writeAccounts(map) {
+    localStorage.setItem(STORAGE_KEYS.LOCAL_ACCOUNTS, JSON.stringify(map));
+  }
+
+  async signUpWithEmail({ name, email, password }) {
+    const cleanName = String(name || "").trim();
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    if (!cleanName) throw new Error("Please enter your full name.");
+    if (!cleanEmail || !cleanEmail.includes("@")) throw new Error("Please enter a valid email address.");
+    if (!password || password.length < 8) throw new Error("Password must be at least 8 characters long.");
+
+    // Attempt Firebase Email/Password authentication first for cloud sync
+    try {
+      await this.initFirebaseIfNeeded();
+      const { authMod } = this.firebaseModules;
+      const cred = await authMod.createUserWithEmailAndPassword(this.auth, cleanEmail, password);
+      await authMod.updateProfile(cred.user, { displayName: cleanName });
+      this.mode = "firebase";
+      localStorage.setItem(STORAGE_KEYS.SESSION_MODE, "firebase");
+      return {
+        mode: "firebase",
+        user: {
+          uid: cred.user.uid,
+          displayName: cleanName,
+          email: cleanEmail
+        }
+      };
+    } catch (fbErr) {
+      const code = fbErr?.code || "";
+      if (code === "auth/email-already-in-use") {
+        throw new Error("An account with this email already exists. Switch to Sign In.");
+      }
+      if (code === "auth/weak-password") {
+        throw new Error("Please choose a stronger password (at least 8 characters).");
+      }
+      if (code && code !== "auth/operation-not-allowed" && code !== "auth/unauthorized-domain") {
+        throw fbErr;
+      }
+    }
+
+    // Browser account registration when Firebase Email/Password provider is not enabled yet
+    const accounts = this._readAccounts();
+    if (accounts[cleanEmail]) {
+      throw new Error("An account with this email already exists in this browser. Switch to Sign In.");
+    }
+    const salt = uidGen("salt");
+    const passwordHash = await hashPassword(password, salt);
     const uid = "local_" + cleanEmail.replace(/[^a-z0-9]/g, "_");
-    const user = {
-      uid,
-      displayName: String(name || "MarketOS Owner").trim() || "MarketOS Owner",
-      email: cleanEmail
-    };
+    accounts[cleanEmail] = { uid, displayName: cleanName, email: cleanEmail, salt, passwordHash, createdAt: Date.now() };
+    this._writeAccounts(accounts);
+
+    const user = { uid, displayName: cleanName, email: cleanEmail };
     this.mode = "local";
     localStorage.setItem(STORAGE_KEYS.SESSION_MODE, "local");
     localStorage.setItem(STORAGE_KEYS.LOCAL_USER, JSON.stringify(user));
-    return { mode: "local", user };
+    return { mode: "local", user, notice: "Account created in browser storage (enable Email/Password in Firebase Console for cloud sync)." };
+  }
+
+  async signInWithEmail({ email, password }) {
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes("@")) throw new Error("Please enter a valid email address.");
+    if (!password) throw new Error("Please enter your password.");
+
+    const accounts = this._readAccounts();
+    const localAcct = accounts[cleanEmail];
+    if (localAcct) {
+      const checkHash = await hashPassword(password, localAcct.salt);
+      if (checkHash !== localAcct.passwordHash) {
+        throw new Error("Incorrect password. Please try again.");
+      }
+      const user = { uid: localAcct.uid, displayName: localAcct.displayName, email: localAcct.email };
+      this.mode = "local";
+      localStorage.setItem(STORAGE_KEYS.SESSION_MODE, "local");
+      localStorage.setItem(STORAGE_KEYS.LOCAL_USER, JSON.stringify(user));
+      return { mode: "local", user };
+    }
+
+    try {
+      await this.initFirebaseIfNeeded();
+      const { authMod } = this.firebaseModules;
+      const cred = await authMod.signInWithEmailAndPassword(this.auth, cleanEmail, password);
+      this.mode = "firebase";
+      localStorage.setItem(STORAGE_KEYS.SESSION_MODE, "firebase");
+      return {
+        mode: "firebase",
+        user: {
+          uid: cred.user.uid,
+          displayName: cred.user.displayName || cleanEmail.split("@")[0],
+          email: cred.user.email || cleanEmail
+        }
+      };
+    } catch (fbErr) {
+      const code = fbErr?.code || "";
+      if (code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found") {
+        throw new Error("Invalid email or password.");
+      }
+      if (code === "auth/operation-not-allowed") {
+        throw new Error("No account found for this email. Switch to Create Account to register.");
+      }
+      throw fbErr;
+    }
+  }
+
+  async resetAccountPassword({ email, newPassword }) {
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes("@")) throw new Error("Please enter your registered email address.");
+
+    const accounts = this._readAccounts();
+    if (accounts[cleanEmail]) {
+      if (!newPassword || newPassword.length < 8) {
+        throw new Error("Enter a new password of at least 8 characters.");
+      }
+      const salt = uidGen("salt");
+      const passwordHash = await hashPassword(newPassword, salt);
+      accounts[cleanEmail] = { ...accounts[cleanEmail], salt, passwordHash };
+      this._writeAccounts(accounts);
+      return "Your browser account password has been updated. You can now sign in.";
+    }
+
+    await this.initFirebaseIfNeeded();
+    const { authMod } = this.firebaseModules;
+    await authMod.sendPasswordResetEmail(this.auth, cleanEmail);
+    return `Password reset email sent to ${cleanEmail}. Check your inbox.`;
   }
 
   async signOut() {

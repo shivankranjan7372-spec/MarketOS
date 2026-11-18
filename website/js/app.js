@@ -172,6 +172,7 @@ async function bootstrap() {
 }
 
 async function startUserSession(session) {
+  resetAuthUiState();
   appState.sessionMode = session.mode;
   appState.user = session.user;
   try {
@@ -358,75 +359,495 @@ function render() {
   renderAppShell(root);
 }
 
+function createRobotChallenge() {
+  const ops = ["+", "-", "+"];
+  const op = ops[Math.floor(Math.random() * ops.length)];
+  let a = 2 + Math.floor(Math.random() * 8);
+  let b = 1 + Math.floor(Math.random() * 7);
+  if (op === "-" && b >= a) {
+    a = b + 2 + Math.floor(Math.random() * 5);
+  }
+  const answer = op === "+" ? a + b : a - b;
+  const optionSet = new Set([answer]);
+  while (optionSet.size < 4) {
+    const delta = Math.floor(Math.random() * 7) - 3;
+    const candidate = answer + (delta === 0 ? 4 : delta);
+    if (candidate >= 0) optionSet.add(candidate);
+  }
+  const options = Array.from(optionSet).sort(() => Math.random() - 0.5);
+  return {
+    verified: false,
+    challengeOpen: false,
+    question: `${a} ${op} ${b}`,
+    answer,
+    options,
+    error: ""
+  };
+}
+
+const authUiState = {
+  tab: "signin", // signin | signup | reset
+  name: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  showPassword: false,
+  showConfirmPassword: false,
+  submitting: false,
+  error: "",
+  success: "",
+  robot: createRobotChallenge()
+};
+
+function resetAuthUiState() {
+  authUiState.tab = "signin";
+  authUiState.name = "";
+  authUiState.email = "";
+  authUiState.password = "";
+  authUiState.confirmPassword = "";
+  authUiState.showPassword = false;
+  authUiState.showConfirmPassword = false;
+  authUiState.submitting = false;
+  authUiState.error = "";
+  authUiState.success = "";
+  authUiState.robot = createRobotChallenge();
+}
+
+function getPasswordStrength(pw) {
+  const value = String(pw || "");
+  const hasMinLen = value.length >= 8;
+  const hasLetter = /[a-zA-Z]/.test(value);
+  const hasNumber = /\d/.test(value);
+  const hasSpecialOrUpper = /[^a-zA-Z0-9]/.test(value) || /[A-Z]/.test(value);
+  let score = 0;
+  if (hasMinLen) score += 1;
+  if (hasLetter && hasNumber) score += 1;
+  if (hasSpecialOrUpper && value.length >= 8) score += 1;
+  if (value.length >= 12 && hasLetter && hasNumber) score += 1;
+  const labels = ["Enter password", "Weak", "Fair", "Good", "Strong"];
+  return {
+    score,
+    label: value.length === 0 ? labels[0] : labels[Math.max(1, score)],
+    hasMinLen,
+    hasLetterAndNumber: hasLetter && hasNumber
+  };
+}
+
+function updatePasswordIndicatorsInPlace() {
+  const strengthBox = document.getElementById("pw-strength-box");
+  if (strengthBox) {
+    const info = getPasswordStrength(authUiState.password);
+    const barClass = info.score > 0 ? `s${info.score}` : "";
+    strengthBox.innerHTML = `
+      <div class="strength-bars">
+        ${[1, 2, 3, 4]
+          .map((n) => `<div class="strength-bar ${info.score >= n ? barClass : ""}"></div>`)
+          .join("")}
+      </div>
+      <div class="row-between">
+        <span class="rule-list">
+          <span class="rule-item ${info.hasMinLen ? "ok" : ""}">${info.hasMinLen ? "✓" : "•"} 8+ characters</span>
+          <span class="rule-item ${info.hasLetterAndNumber ? "ok" : ""}">${info.hasLetterAndNumber ? "✓" : "•"} Letters & numbers</span>
+        </span>
+        <span class="small muted">${esc(info.label)}</span>
+      </div>`;
+  }
+
+  const matchBox = document.getElementById("pw-match-box");
+  if (matchBox) {
+    if (!authUiState.confirmPassword) {
+      matchBox.innerHTML = "";
+    } else if (authUiState.password === authUiState.confirmPassword) {
+      matchBox.innerHTML = `<span class="rule-item ok">✓ Passwords match</span>`;
+    } else {
+      matchBox.innerHTML = `<span class="rule-item bad">✕ Passwords do not match</span>`;
+    }
+  }
+}
+
 function renderAuthScreen(root) {
+  const isSignup = authUiState.tab === "signup";
+  const isReset = authUiState.tab === "reset";
+  const headingText = isReset
+    ? "Reset your password"
+    : isSignup
+      ? "Create your MarketOS account"
+      : "Sign in to MarketOS";
+  const subText = isReset
+    ? "Update your browser account password or send a Firebase reset email."
+    : isSignup
+      ? "Set up your credentials to launch and manage your AI marketing workspaces."
+      : "Enter your account credentials to continue to your marketing command center.";
+
   root.innerHTML = `
     <div class="auth-page">
       <div class="auth-card stack">
-        <div class="brand-row" style="padding:0">
-          <img src="./assets/logo.svg" alt="MarketOS logo" />
-          <div>
-            <div class="brand-name">Market<span>OS</span></div>
-            <div class="brand-sub">Plan • Create • Grow</div>
+        <div class="row-between">
+          <div class="brand-row" style="padding:0">
+            <img src="./assets/logo.svg" alt="MarketOS logo" />
+            <div>
+              <div class="brand-name">Market<span>OS</span></div>
+              <div class="brand-sub">Plan • Create • Grow</div>
+            </div>
           </div>
+          <button id="auth-theme-toggle" type="button" class="btn btn-outline btn-sm" aria-label="Toggle theme">
+            ${appState.theme === "dark" ? "Light" : "Dark"}
+          </button>
         </div>
+
         <div>
-          <h2 style="font-size:1.55rem;">Your AI Marketing Department</h2>
-          <p class="muted" style="margin-top:0.35rem;">
-            Sign in with Google to sync workspaces with your MarketOS Android app via Firebase Cloud, or start an instant local browser session.
-          </p>
+          <h2 style="font-size:1.45rem;">${headingText}</h2>
+          <p class="muted" style="margin-top:0.3rem;font-size:0.86rem;">${subText}</p>
         </div>
 
-        <button id="btn-google-signin" class="btn btn-primary" style="width:100%;padding:0.8rem;">
-          Sign in with Google (Firebase Cloud Sync)
-        </button>
+        ${
+          !isReset
+            ? `
+          <div class="auth-tabs" role="tablist" aria-label="Authentication mode">
+            <button id="tab-signin" type="button" role="tab" aria-selected="${!isSignup}" class="auth-tab ${!isSignup ? "active" : ""}">Sign In</button>
+            <button id="tab-signup" type="button" role="tab" aria-selected="${isSignup}" class="auth-tab ${isSignup ? "active" : ""}">Create Account</button>
+          </div>`
+            : ""
+        }
 
-        <div id="auth-error-box" class="error-banner" style="display:none;"></div>
+        ${authUiState.error ? `<div id="auth-error-box" class="error-banner">${esc(authUiState.error)}</div>` : `<div id="auth-error-box" class="error-banner" style="display:none;"></div>`}
+        ${authUiState.success ? `<div id="auth-success-box" class="success-banner">${esc(authUiState.success)}</div>` : ""}
 
-        <div class="divider"></div>
-
-        <form id="local-auth-form" class="stack">
-          <div class="muted small"><strong>Instant Web Workspace (Browser Storage)</strong> — run all 13 MarketOS studios right away in this browser:</div>
-          <div class="grid-2">
+        <form id="auth-main-form" class="stack" novalidate>
+          ${
+            isSignup
+              ? `
             <div class="field">
-              <label for="local-name">Your Name</label>
-              <input id="local-name" class="input" value="MarketOS Owner" required />
-            </div>
-            <div class="field">
-              <label for="local-email">Work Email</label>
-              <input id="local-email" type="email" class="input" placeholder="you@business.com" value="owner@marketos.app" required />
-            </div>
+              <label for="auth-name">Full Name</label>
+              <input id="auth-name" type="text" class="input" autocomplete="name" placeholder="Enter your full name" value="${esc(authUiState.name)}" required />
+            </div>`
+              : ""
+          }
+
+          <div class="field">
+            <label for="auth-email">Email Address</label>
+            <input id="auth-email" type="email" class="input" autocomplete="email" placeholder="Enter your email address" value="${esc(authUiState.email)}" required />
           </div>
-          <button type="submit" class="btn btn-outline" style="width:100%;">Continue in Web Workspace</button>
+
+          <div class="field">
+            <div class="row-between">
+              <label for="auth-password">${isSignup ? "Create Password" : isReset ? "New Password (min. 8 characters)" : "Password"}</label>
+              ${!isSignup && !isReset ? `<button id="btn-forgot-pw" type="button" class="link-btn">Forgot password?</button>` : ""}
+            </div>
+            <div class="password-wrap">
+              <input
+                id="auth-password"
+                type="${authUiState.showPassword ? "text" : "password"}"
+                class="input"
+                autocomplete="${isSignup || isReset ? "new-password" : "current-password"}"
+                placeholder="${isSignup || isReset ? "Minimum 8 characters" : "Enter your password"}"
+                value="${esc(authUiState.password)}"
+                ${isReset ? "" : "required"}
+              />
+              <button id="toggle-pw" type="button" class="password-toggle" aria-label="Toggle password visibility">
+                ${authUiState.showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+            ${isSignup || isReset ? `<div id="pw-strength-box" class="strength-meter"></div>` : ""}
+          </div>
+
+          ${
+            isSignup || isReset
+              ? `
+            <div class="field">
+              <label for="auth-confirm-password">${isReset ? "Confirm New Password" : "Confirm Password"}</label>
+              <div class="password-wrap">
+                <input
+                  id="auth-confirm-password"
+                  type="${authUiState.showConfirmPassword ? "text" : "password"}"
+                  class="input"
+                  autocomplete="new-password"
+                  placeholder="Re-enter your password"
+                  value="${esc(authUiState.confirmPassword)}"
+                  ${isSignup ? "required" : ""}
+                />
+                <button id="toggle-confirm-pw" type="button" class="password-toggle" aria-label="Toggle confirm password visibility">
+                  ${authUiState.showConfirmPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              <div id="pw-match-box" class="rule-list" style="min-height:1.1rem;"></div>
+            </div>`
+              : ""
+          }
+
+          ${isReset ? `<div class="muted small">For Firebase email accounts, you can leave the password fields blank to receive a reset link by email.</div>` : ""}
+
+          <div class="robot-box ${authUiState.robot.verified ? "verified" : ""}" id="robot-box">
+            <div class="robot-top">
+              <button id="robot-check-btn" type="button" class="robot-trigger" aria-pressed="${authUiState.robot.verified}">
+                <span class="robot-checkbox">${authUiState.robot.verified ? "✓" : ""}</span>
+                <span>${authUiState.robot.verified ? "Verified — I'm not a robot" : "I'm not a robot"}</span>
+              </button>
+              <span class="badge ${authUiState.robot.verified ? "emerald" : "violet"}">
+                ${authUiState.robot.verified ? "Human Verified" : "Human Check"}
+              </span>
+            </div>
+
+            ${
+              !authUiState.robot.verified && authUiState.robot.challengeOpen
+                ? `
+              <div class="robot-challenge">
+                <div class="row-between">
+                  <span class="small">Quick verification: What is <strong>${esc(authUiState.robot.question)}</strong>?</span>
+                  <button id="robot-refresh-btn" type="button" class="link-btn" style="font-size:0.76rem;">New check</button>
+                </div>
+                <div class="robot-options">
+                  ${authUiState.robot.options
+                    .map((opt) => `<button type="button" class="robot-opt-btn" data-robot-opt="${opt}">${opt}</button>`)
+                    .join("")}
+                </div>
+                ${authUiState.robot.error ? `<div class="small" style="color:var(--rose);">${esc(authUiState.robot.error)}</div>` : ""}
+              </div>`
+                : ""
+            }
+          </div>
+
+          <button id="auth-submit-btn" type="submit" class="btn btn-primary" style="width:100%;padding:0.78rem;" ${authUiState.submitting ? "disabled" : ""}>
+            ${
+              authUiState.submitting
+                ? "Please wait..."
+                : isReset
+                  ? "Reset Password"
+                  : isSignup
+                    ? "Create Account"
+                    : "Sign In"
+            }
+          </button>
+
+          ${
+            isReset
+              ? `<button id="btn-back-signin" type="button" class="btn btn-outline" style="width:100%;">Back to Sign In</button>`
+              : ""
+          }
         </form>
 
-        <div class="muted small">
-          Cloud Project: <span class="mono">${esc(DEFAULT_FIREBASE_CONFIG.projectId)}</span> • Domain: <span class="mono">marketosai.vercel.app</span>
+        <div class="auth-divider"><span>or</span></div>
+
+        <button id="btn-google-signin" type="button" class="btn btn-outline" style="width:100%;padding:0.72rem;" ${authUiState.submitting ? "disabled" : ""}>
+          Continue with Google (Firebase Cloud Sync)
+        </button>
+
+        <div class="muted small" style="text-align:center;">
+          Cloud Project: <span class="mono">${esc(DEFAULT_FIREBASE_CONFIG.projectId)}</span>
         </div>
       </div>
     </div>
   `;
 
+  if (isSignup || isReset) {
+    updatePasswordIndicatorsInPlace();
+  }
+
+  document.getElementById("auth-theme-toggle")?.addEventListener("click", () => {
+    applyTheme(appState.theme === "dark" ? "light" : "dark");
+    renderAuthScreen(root);
+  });
+
+  document.getElementById("tab-signin")?.addEventListener("click", () => {
+    authUiState.tab = "signin";
+    authUiState.error = "";
+    authUiState.success = "";
+    renderAuthScreen(root);
+  });
+
+  document.getElementById("tab-signup")?.addEventListener("click", () => {
+    authUiState.tab = "signup";
+    authUiState.error = "";
+    authUiState.success = "";
+    renderAuthScreen(root);
+  });
+
+  document.getElementById("btn-forgot-pw")?.addEventListener("click", () => {
+    authUiState.tab = "reset";
+    authUiState.password = "";
+    authUiState.confirmPassword = "";
+    authUiState.error = "";
+    authUiState.success = "";
+    authUiState.robot = createRobotChallenge();
+    renderAuthScreen(root);
+  });
+
+  document.getElementById("btn-back-signin")?.addEventListener("click", () => {
+    authUiState.tab = "signin";
+    authUiState.password = "";
+    authUiState.confirmPassword = "";
+    authUiState.error = "";
+    authUiState.success = "";
+    authUiState.robot = createRobotChallenge();
+    renderAuthScreen(root);
+  });
+
+  document.getElementById("auth-name")?.addEventListener("input", (e) => {
+    authUiState.name = e.target.value;
+  });
+
+  document.getElementById("auth-email")?.addEventListener("input", (e) => {
+    authUiState.email = e.target.value;
+  });
+
+  document.getElementById("auth-password")?.addEventListener("input", (e) => {
+    authUiState.password = e.target.value;
+    if (isSignup || isReset) updatePasswordIndicatorsInPlace();
+  });
+
+  document.getElementById("auth-confirm-password")?.addEventListener("input", (e) => {
+    authUiState.confirmPassword = e.target.value;
+    if (isSignup || isReset) updatePasswordIndicatorsInPlace();
+  });
+
+  document.getElementById("toggle-pw")?.addEventListener("click", () => {
+    authUiState.showPassword = !authUiState.showPassword;
+    renderAuthScreen(root);
+  });
+
+  document.getElementById("toggle-confirm-pw")?.addEventListener("click", () => {
+    authUiState.showConfirmPassword = !authUiState.showConfirmPassword;
+    renderAuthScreen(root);
+  });
+
+  document.getElementById("robot-check-btn")?.addEventListener("click", () => {
+    if (authUiState.robot.verified) return;
+    authUiState.robot.challengeOpen = !authUiState.robot.challengeOpen;
+    authUiState.robot.error = "";
+    renderAuthScreen(root);
+  });
+
+  document.getElementById("robot-refresh-btn")?.addEventListener("click", () => {
+    authUiState.robot = { ...createRobotChallenge(), challengeOpen: true };
+    renderAuthScreen(root);
+  });
+
+  document.querySelectorAll("[data-robot-opt]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const picked = Number(btn.getAttribute("data-robot-opt"));
+      if (picked === authUiState.robot.answer) {
+        authUiState.robot.verified = true;
+        authUiState.robot.challengeOpen = false;
+        authUiState.robot.error = "";
+        authUiState.error = "";
+      } else {
+        authUiState.robot = {
+          ...createRobotChallenge(),
+          challengeOpen: true,
+          error: "Incorrect answer. Please try the new verification check."
+        };
+      }
+      renderAuthScreen(root);
+    });
+  });
+
+  document.getElementById("auth-main-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    authUiState.error = "";
+    authUiState.success = "";
+
+    const name = authUiState.name.trim();
+    const email = authUiState.email.trim();
+    const password = authUiState.password;
+    const confirmPassword = authUiState.confirmPassword;
+
+    if (isSignup && !name) {
+      authUiState.error = "Please enter your full name.";
+      renderAuthScreen(root);
+      return;
+    }
+    if (!email || !email.includes("@")) {
+      authUiState.error = "Please enter a valid email address.";
+      renderAuthScreen(root);
+      return;
+    }
+    if (isSignup) {
+      if (password.length < 8) {
+        authUiState.error = "Please create a password with at least 8 characters.";
+        renderAuthScreen(root);
+        return;
+      }
+      if (password !== confirmPassword) {
+        authUiState.error = "Passwords do not match. Please confirm your password.";
+        renderAuthScreen(root);
+        return;
+      }
+    } else if (authUiState.tab === "signin") {
+      if (!password) {
+        authUiState.error = "Please enter your password.";
+        renderAuthScreen(root);
+        return;
+      }
+    } else if (isReset && (password || confirmPassword)) {
+      if (password.length < 8) {
+        authUiState.error = "New password must be at least 8 characters.";
+        renderAuthScreen(root);
+        return;
+      }
+      if (password !== confirmPassword) {
+        authUiState.error = "New password and confirmation do not match.";
+        renderAuthScreen(root);
+        return;
+      }
+    }
+
+    if (!authUiState.robot.verified) {
+      authUiState.robot.challengeOpen = true;
+      authUiState.error = "Please complete the 'I'm not a robot' verification before continuing.";
+      renderAuthScreen(root);
+      return;
+    }
+
+    authUiState.submitting = true;
+    renderAuthScreen(root);
+
+    try {
+      if (isSignup) {
+        const session = await store.signUpWithEmail({ name, email, password });
+        if (session.notice) toast(session.notice);
+        await startUserSession(session);
+      } else if (isReset) {
+        const msg = await store.resetAccountPassword({ email, newPassword: password });
+        authUiState.submitting = false;
+        authUiState.tab = "signin";
+        authUiState.password = "";
+        authUiState.confirmPassword = "";
+        authUiState.success = msg;
+        authUiState.robot = createRobotChallenge();
+        renderAuthScreen(root);
+      } else {
+        const session = await store.signInWithEmail({ email, password });
+        await startUserSession(session);
+      }
+    } catch (err) {
+      authUiState.submitting = false;
+      authUiState.error = err?.message || String(err);
+      renderAuthScreen(root);
+    }
+  });
+
   document.getElementById("btn-google-signin")?.addEventListener("click", async () => {
-    const errBox = document.getElementById("auth-error-box");
-    errBox.style.display = "none";
+    authUiState.error = "";
+    authUiState.success = "";
+    if (!authUiState.robot.verified) {
+      authUiState.robot.challengeOpen = true;
+      authUiState.error = "Please complete the 'I'm not a robot' verification before continuing.";
+      renderAuthScreen(root);
+      return;
+    }
+    authUiState.submitting = true;
+    renderAuthScreen(root);
     try {
       const session = await store.signInWithGoogleFirebase();
       await startUserSession(session);
     } catch (err) {
-      errBox.style.display = "block";
+      authUiState.submitting = false;
       const msg = err?.message || String(err);
-      errBox.textContent = msg.includes("unauthorized-domain")
-        ? "Add marketosai.vercel.app to Firebase Console -> Authentication -> Settings -> Authorized domains, or use 'Continue in Web Workspace' below."
+      authUiState.error = msg.includes("unauthorized-domain")
+        ? "Add marketosai.vercel.app to Firebase Console -> Authentication -> Settings -> Authorized domains, or create an email/password account above."
         : msg;
+      renderAuthScreen(root);
     }
-  });
-
-  document.getElementById("local-auth-form")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const name = document.getElementById("local-name").value;
-    const email = document.getElementById("local-email").value;
-    const session = store.signInLocalWorkspace(name, email);
-    await startUserSession(session);
   });
 }
 
