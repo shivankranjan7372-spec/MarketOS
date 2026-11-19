@@ -47,8 +47,10 @@ async function hashPassword(password, salt) {
 }
 
 export function getSavedPreferences() {
+  const rawTheme = localStorage.getItem(STORAGE_KEYS.THEME) || "system";
+  const theme = ["dark", "light", "system"].includes(rawTheme) ? rawTheme : "system";
   return {
-    theme: localStorage.getItem(STORAGE_KEYS.THEME) || "dark",
+    theme,
     firebaseAppId: localStorage.getItem(STORAGE_KEYS.FIREBASE_APP_ID) || "",
     geminiKey: localStorage.getItem(STORAGE_KEYS.GEMINI_KEY) || "",
     geminiModel: localStorage.getItem(STORAGE_KEYS.GEMINI_MODEL) || "gemini-2.5-flash"
@@ -56,7 +58,9 @@ export function getSavedPreferences() {
 }
 
 export function savePreferences(partial) {
-  if (partial.theme !== undefined) localStorage.setItem(STORAGE_KEYS.THEME, partial.theme);
+  if (partial.theme !== undefined && ["dark", "light", "system"].includes(partial.theme)) {
+    localStorage.setItem(STORAGE_KEYS.THEME, partial.theme);
+  }
   if (partial.firebaseAppId !== undefined) localStorage.setItem(STORAGE_KEYS.FIREBASE_APP_ID, partial.firebaseAppId.trim());
   if (partial.geminiKey !== undefined) localStorage.setItem(STORAGE_KEYS.GEMINI_KEY, partial.geminiKey.trim());
   if (partial.geminiModel !== undefined) localStorage.setItem(STORAGE_KEYS.GEMINI_MODEL, partial.geminiModel.trim());

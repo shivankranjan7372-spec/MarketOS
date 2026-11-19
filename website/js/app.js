@@ -46,7 +46,7 @@ const appState = {
   cytonApprovals: [],
   cytonLogs: [],
   cytonUsage: [],
-  activeSection: "cyton",
+  activeSection: "overview",
   exchangeRates: null,
   aiStatus: "idle", // idle | loading | success | error
   aiDeliverable: null,
@@ -89,10 +89,37 @@ function toast(message) {
   setTimeout(() => el.remove(), 3800);
 }
 
-function applyTheme(theme) {
-  appState.theme = theme;
-  document.documentElement.setAttribute("data-theme", theme);
-  savePreferences({ theme });
+function resolveEffectiveTheme(themePref) {
+  if (themePref === "light") return "light";
+  if (themePref === "dark") return "dark";
+  if (typeof window !== "undefined" && window.matchMedia) {
+    return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  }
+  return "dark";
+}
+
+function applyTheme(themePref) {
+  const normalized = ["dark", "light", "system"].includes(themePref) ? themePref : "system";
+  const effective = resolveEffectiveTheme(normalized);
+  appState.theme = normalized;
+  document.documentElement.setAttribute("data-theme", effective);
+  document.documentElement.setAttribute("data-theme-pref", normalized);
+  const metaTheme = document.getElementById("meta-theme-color");
+  if (metaTheme) {
+    metaTheme.setAttribute("content", effective === "light" ? "#F4F6FB" : "#080B12");
+  }
+  savePreferences({ theme: normalized });
+}
+
+if (typeof window !== "undefined" && window.matchMedia) {
+  const sysMq = window.matchMedia("(prefers-color-scheme: light)");
+  const onSysChange = () => {
+    if (appState.theme === "system") {
+      applyTheme("system");
+      if (appState.screen === "app" || appState.screen === "auth") render();
+    }
+  };
+  if (typeof sysMq.addEventListener === "function") sysMq.addEventListener("change", onSysChange);
 }
 
 function getActiveBusiness() {
@@ -354,9 +381,9 @@ function render() {
   if (appState.screen === "splash") {
     root.innerHTML = `
       <div class="splash-screen">
-        <img src="./assets/brand-logo.png" alt="MarketOS CYTON logo" width="76" height="76" class="splash-logo" />
+        <img src="./assets/brand-logo.png" alt="MarketOS logo" width="76" height="76" class="splash-logo" />
         <h1 class="splash-title">Market<span>OS</span></h1>
-        <p class="splash-tagline">PLAN • CREATE • GROW</p>
+        <p class="splash-tagline">THE AI BUSINESS OPERATING SYSTEM</p>
       </div>`;
     return;
   }
@@ -499,15 +526,17 @@ function renderAuthScreen(root) {
       <div class="auth-card stack">
         <div class="row-between">
           <div class="brand-row" style="padding:0">
-            <img src="./assets/brand-logo.png" alt="MarketOS CYTON logo" />
+            <img src="./assets/brand-logo.png" alt="MarketOS logo" />
             <div>
               <div class="brand-name">Market<span>OS</span></div>
-              <div class="brand-sub">Plan • Create • Grow</div>
+              <div class="brand-sub">AI Business Operating System</div>
             </div>
           </div>
-          <button id="auth-theme-toggle" type="button" class="btn btn-outline btn-sm" aria-label="Toggle theme">
-            ${appState.theme === "dark" ? "Light" : "Dark"}
-          </button>
+          <select id="auth-theme-select" class="theme-select" aria-label="Color theme">
+            <option value="system" ${appState.theme === "system" ? "selected" : ""}>System</option>
+            <option value="dark" ${appState.theme === "dark" ? "selected" : ""}>Dark</option>
+            <option value="light" ${appState.theme === "light" ? "selected" : ""}>Light</option>
+          </select>
         </div>
 
         <div>
@@ -658,8 +687,8 @@ function renderAuthScreen(root) {
     updatePasswordIndicatorsInPlace();
   }
 
-  document.getElementById("auth-theme-toggle")?.addEventListener("click", () => {
-    applyTheme(appState.theme === "dark" ? "light" : "dark");
+  document.getElementById("auth-theme-select")?.addEventListener("change", (e) => {
+    applyTheme(e.target.value);
     renderAuthScreen(root);
   });
 
@@ -1114,6 +1143,27 @@ function bindOnboardingEvents(isModal) {
   });
 }
 
+function renderNavIcon(icon) {
+  const icons = {
+    orb: `<circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10 2.1 2.1m0-14.2-2.1 2.1M7 17l-2.1 2.1"/>`,
+    dashboard: `<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>`,
+    sparkles: `<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 17l.8 2.2L22 20l-2.2.8L19 23l-.8-2.2L16 20l2.2-.8L19 17z"/>`,
+    campaign: `<path d="M3 11v2a1 1 0 0 0 1 1h2l4 5h2l-2-5h5l5 3V7l-5 3H4a1 1 0 0 0-1 1z"/>`,
+    share: `<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>`,
+    globe: `<circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>`,
+    mail: `<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>`,
+    palette: `<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.2"/><circle cx="12" cy="7.5" r="1.2"/><circle cx="15.5" cy="10" r="1.2"/><path d="M15 14.5c1.2 0 2 .7 2 1.8a2.7 2.7 0 0 1-2.7 2.7H12"/>`,
+    ads: `<path d="M4 19V5l16 7-16 7z"/>`,
+    calendar: `<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>`,
+    check: `<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5.5"/>`,
+    chart: `<path d="M4 19h16"/><path d="M7 16v-4m5 4V8m5 8v-6"/>`,
+    hub: `<circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M9.8 10.2 6.5 7.5M14.2 10.2l3.3-2.7M9.8 13.8l-3.3 2.7M14.2 13.8l3.3 2.7"/>`,
+    settings: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.65 1.65 0 0 0-1.8-.3 1.65 1.65 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.65 1.65 0 0 0-1-1.5 1.65 1.65 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.65 1.65 0 0 0 .3-1.8 1.65 1.65 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.65 1.65 0 0 0 1.5-1 1.65 1.65 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.65 1.65 0 0 0 1.8.3h.1a1.65 1.65 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.65 1.65 0 0 0 1 1.5 1.65 1.65 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.65 1.65 0 0 0-.3 1.8v.1a1.65 1.65 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.65 1.65 0 0 0-1.5 1z"/>`
+  };
+  const body = icons[icon] || icons.dashboard;
+  return `<svg class="nav-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+}
+
 // ---------------- App Shell ----------------
 function renderAppShell(root) {
   const biz = getActiveBusiness();
@@ -1126,41 +1176,61 @@ function renderAppShell(root) {
   const pendingCount = items.filter((i) => i.approvalStatus === "PENDING_APPROVAL").length;
   const scheduledCount = items.filter((i) => i.approvalStatus === "SCHEDULED").length;
 
-  const groups = ["Cyton AI", "Workspace", "Create", "Publish & Track", "System"];
+  const groups = ["CYTON", "WORKSPACE", "CREATE", "PUBLISH & TRACK", "SYSTEM"];
   const navHtml = groups
     .map((grp) => {
       const links = APP_SECTIONS.filter((s) => s.group === grp)
         .map((s) => {
           const count = s.id === "approvals" ? pendingCount : s.id === "content_calendar" ? scheduledCount : 0;
+          const isCyton = s.id === "cyton";
           return `
-            <button type="button" class="nav-item ${appState.activeSection === s.id ? "active" : ""}" data-nav="${s.id}">
-              <span>${esc(s.label)}</span>
-              ${count > 0 ? `<span class="nav-badge">${count}</span>` : ""}
+            <button type="button" class="nav-item ${isCyton ? "nav-item-cyton" : ""} ${appState.activeSection === s.id ? "active" : ""}" data-nav="${s.id}">
+              <span class="nav-item-main">
+                ${renderNavIcon(s.icon)}
+                <span>${esc(s.label)}</span>
+              </span>
+              ${count > 0 ? `<span class="nav-badge">${count}</span>` : isCyton ? `<span class="cy-nav-pill">AI</span>` : ""}
             </button>`;
         })
         .join("");
+
+      if (grp === "CYTON") {
+        return `
+          <div class="nav-cyton-box">
+            <div class="nav-group-label cyton-group-label">CYTON</div>
+            ${links}
+            <div class="nav-cyton-sub">Intelligent AI Assistant by MarketOS</div>
+          </div>`;
+      }
       return `<div><div class="nav-group-label">${grp}</div>${links}</div>`;
     })
     .join("");
 
   root.innerHTML = `
     <div class="app-shell">
-      <div class="mobile-backdrop ${appState.sidebarOpen ? "open" : ""}" id="mobile-backdrop"></div>
-      <aside class="sidebar ${appState.sidebarOpen ? "open" : ""}">
-        <div class="brand-row">
-          <img src="./assets/brand-logo.png" alt="CYTON by MarketOS logo" />
-          <div>
-            <div class="brand-name">CYTON <span>AI</span></div>
-            <div class="brand-sub">by MarketOS</div>
+      <div class="mobile-backdrop ${appState.sidebarOpen ? "open" : ""}" id="mobile-backdrop" aria-hidden="${!appState.sidebarOpen}"></div>
+      <aside class="sidebar ${appState.sidebarOpen ? "open" : ""}" aria-label="Main navigation">
+        <div class="sidebar-top-row">
+          <div class="brand-row">
+            <img src="./assets/brand-logo.png" alt="MarketOS logo" />
+            <div>
+              <div class="brand-name">Market<span>OS</span></div>
+              <div class="brand-sub">The AI Business Operating System</div>
+            </div>
           </div>
+          <button id="btn-close-sidebar" type="button" class="mobile-close-btn" aria-label="Close navigation menu">✕</button>
         </div>
-        ${navHtml}
+        <div class="sidebar-nav-scroll">
+          ${navHtml}
+        </div>
       </aside>
 
       <div class="main-area">
         <header class="topbar">
           <div class="topbar-left">
-            <button id="btn-toggle-sidebar" class="btn btn-outline btn-sm mobile-drawer-btn" type="button">Menu</button>
+            <button id="btn-toggle-sidebar" class="btn btn-outline btn-sm mobile-drawer-btn" type="button" aria-label="Open navigation menu" aria-expanded="${appState.sidebarOpen}">
+              ☰ Menu
+            </button>
             <select id="workspace-switcher" class="workspace-select" aria-label="Switch active business">
               ${appState.businesses
                 .map((b) => {
@@ -1173,14 +1243,16 @@ function renderAppShell(root) {
           </div>
           <div class="topbar-right">
             <button id="btn-topbar-cyton" class="btn ${appState.activeSection === "cyton" ? "btn-primary" : "btn-outline"} btn-sm" type="button">
-              ✦ Cyton Core
+              ✦ CYTON Assistant
             </button>
-            <span class="badge ${appState.sessionMode === "firebase" ? "emerald" : "sky"}">
+            <span class="badge ${appState.sessionMode === "firebase" ? "emerald" : "sky"} topbar-sync-badge">
               ${appState.sessionMode === "firebase" ? "Cloud Sync" : "Web Session"}
             </span>
-            <button id="btn-theme-toggle" class="btn btn-outline btn-sm" type="button">
-              ${appState.theme === "dark" ? "Light Mode" : "Dark Mode"}
-            </button>
+            <select id="topbar-theme-select" class="theme-select" aria-label="Color theme mode">
+              <option value="system" ${appState.theme === "system" ? "selected" : ""}>Theme: System</option>
+              <option value="dark" ${appState.theme === "dark" ? "selected" : ""}>Theme: Dark</option>
+              <option value="light" ${appState.theme === "light" ? "selected" : ""}>Theme: Light</option>
+            </select>
           </div>
         </header>
 
@@ -1191,6 +1263,10 @@ function renderAppShell(root) {
 
   document.getElementById("btn-toggle-sidebar")?.addEventListener("click", () => {
     appState.sidebarOpen = !appState.sidebarOpen;
+    render();
+  });
+  document.getElementById("btn-close-sidebar")?.addEventListener("click", () => {
+    appState.sidebarOpen = false;
     render();
   });
   document.getElementById("mobile-backdrop")?.addEventListener("click", () => {
@@ -1219,8 +1295,8 @@ function renderAppShell(root) {
     initOnboardingDraft();
     renderOnboardingScreen(null, true);
   });
-  document.getElementById("btn-theme-toggle")?.addEventListener("click", () => {
-    applyTheme(appState.theme === "dark" ? "light" : "dark");
+  document.getElementById("topbar-theme-select")?.addEventListener("change", (e) => {
+    applyTheme(e.target.value);
     render();
   });
 
@@ -1432,8 +1508,9 @@ function renderOverview(container, biz, country) {
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
       <div class="muted small">${aiUsed} / ${tier.monthlyAiLimit} AI generations used this month • ${appState.profile?.aiTokenCountThisMonth || 0} est. tokens</div>
       <div class="row-gap">
-        <button id="ov-quick-ai" class="btn btn-primary btn-sm" type="button">AI Growth Plan</button>
-        <button class="btn btn-outline btn-sm" data-jump="ai_assistant" type="button">Open Assistant</button>
+        <button class="btn btn-primary btn-sm" data-jump="cyton" type="button">✦ Open CYTON Command Centre</button>
+        <button id="ov-quick-ai" class="btn btn-outline btn-sm" type="button">AI Growth Plan</button>
+        <button class="btn btn-outline btn-sm" data-jump="ai_assistant" type="button">AI Studio Chat</button>
       </div>
     </div>
 
@@ -2584,6 +2661,21 @@ function renderSettings(container, biz) {
   container.innerHTML = `
     <h2>Settings & Workspaces</h2>
 
+    <div class="card stack">
+      <div class="row-between">
+        <div>
+          <h3>Appearance & Theme</h3>
+          <div class="muted small">Choose Dark Mode, Light Mode, or System Default. Saved across sessions.</div>
+        </div>
+        <span class="badge violet">Active: ${esc(resolveEffectiveTheme(appState.theme))}</span>
+      </div>
+      <div class="chips">
+        <button type="button" class="chip set-theme-opt ${appState.theme === "dark" ? "active" : ""}" data-theme-opt="dark">Dark Mode</button>
+        <button type="button" class="chip set-theme-opt ${appState.theme === "light" ? "active" : ""}" data-theme-opt="light">Light Mode</button>
+        <button type="button" class="chip set-theme-opt ${appState.theme === "system" ? "active" : ""}" data-theme-opt="system">System Default</button>
+      </div>
+    </div>
+
     <div class="card hi stack">
       <div class="row-between">
         <h3>Business Workspaces (${appState.businesses.length})</h3>
@@ -2675,6 +2767,13 @@ function renderSettings(container, biz) {
     </div>
   `;
 
+  document.querySelectorAll(".set-theme-opt").forEach((b) => {
+    b.addEventListener("click", () => {
+      applyTheme(b.dataset.themeOpt);
+      toast(`Theme switched to ${b.textContent.trim()}`);
+      render();
+    });
+  });
   document.getElementById("set-add-biz")?.addEventListener("click", () => {
     initOnboardingDraft();
     renderOnboardingScreen(null, true);
@@ -2726,5 +2825,12 @@ function renderSettings(container, biz) {
     render();
   });
 }
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && appState.sidebarOpen) {
+    appState.sidebarOpen = false;
+    render();
+  }
+});
 
 bootstrap();

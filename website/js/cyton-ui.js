@@ -105,6 +105,11 @@ function setOrbState(stateName, customText = "") {
   if (orbEl) {
     orbEl.className = `cyton-orb orb-${stateName}`;
   }
+  const waveEl = document.querySelector(".cy-waveform");
+  if (waveEl) {
+    const isActive = ["listening", "thinking", "planning", "creating", "executing"].includes(stateName);
+    waveEl.classList.toggle("active", isActive);
+  }
   const labelEl = document.getElementById("cyton-orb-status");
   if (labelEl) {
     labelEl.textContent = cytonUiState.orbStatusText;
@@ -341,14 +346,14 @@ export function renderCytonCommandCentre(container, { appState, store, biz, toas
         <header class="cyton-centre-bar">
           <div class="row-gap">
             ${!cytonUiState.leftOpen ? `<button id="cy-open-left" type="button" class="btn btn-outline btn-sm">History</button>` : ""}
-            <img src="./assets/brand-logo.png" alt="Cyton logo" class="cy-bar-logo" />
+            <div class="cy-core-badge-icon" aria-hidden="true">✦</div>
             <div>
               <div class="row-gap">
-                <strong style="font-family:var(--font-display);letter-spacing:0.04em;">CYTON COMMAND CENTRE</strong>
+                <strong style="font-family:var(--font-display);letter-spacing:0.03em;">CYTON Command Centre</strong>
                 ${activeProject ? `<span class="badge violet">📂 ${esc(activeProject.name)}</span>` : ""}
                 ${cytonSettings.emergencyPaused ? `<span class="badge rose">PAUSED</span>` : ""}
               </div>
-              <div class="muted small">Don't just ask AI. Get the work done.</div>
+              <div class="muted small">CYTON • Intelligent AI Assistant by MarketOS</div>
             </div>
           </div>
           <div class="row-gap">
@@ -566,20 +571,36 @@ function renderCentreSubView({
     return renderMarketplaceView(cytonUiState.serverHealth);
   }
 
-  // Default: Command Stream with Cyton AI Core Orb
+  const isCoreActive = ["listening", "thinking", "planning", "creating", "executing"].includes(cytonUiState.orbState);
+  const voiceBarHeights = isCoreActive ? [16, 26, 20, 28, 14] : [8, 12, 16, 12, 8];
+
+  // Default: Command Stream with CYTON AI Core Orb
   return `
     <div class="cyton-core-stage">
       <div id="cyton-orb-root" class="cyton-orb orb-${esc(cytonUiState.orbState)}" aria-hidden="true">
         <div class="orb-ring ring-1"></div>
         <div class="orb-ring ring-2"></div>
         <div class="orb-nucleus">
-          <img src="./assets/brand-logo.png" alt="CYTON" class="cy-orb-logo" />
+          <span class="cy-orb-glyph">✦</span>
+          <span class="cy-orb-word">CYTON</span>
         </div>
       </div>
+
+      <div class="cy-waveform ${isCoreActive ? "active" : ""}" aria-hidden="true">
+        ${voiceBarHeights.map((h, i) => `<span class="cy-wave-bar" style="--h:${h}px;animation-delay:${i * 0.11}s;"></span>`).join("")}
+      </div>
+
       <div class="cyton-core-copy">
-        <div id="cyton-orb-status" class="badge violet">${esc(cytonUiState.orbStatusText)}</div>
-        <h2 style="margin-top:0.55rem;font-size:1.35rem;">Welcome to Cyton. What should we get done today?</h2>
-        <p class="muted small" style="margin:0.25rem 0 0;">Your ideas. Your instructions. Cyton's execution.</p>
+        <div class="cy-status-strip">
+          <span id="cyton-orb-status" class="badge violet">${esc(cytonUiState.orbStatusText)}</span>
+          <span class="badge sky">Model: ${esc(gatewayCfg.provider)}/${esc(gatewayCfg.model)}</span>
+          <span class="badge ${cytonUiState.serverHealth?.integrations?.website_research?.liveServerFetchAvailable ? "emerald" : "neutral"}">Tools: Web • Docs • Approvals</span>
+        </div>
+        <div class="muted small" style="margin-top:0.55rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">
+          CYTON • Intelligent AI Assistant by MarketOS
+        </div>
+        <h2 style="margin-top:0.35rem;font-size:1.3rem;">Welcome to CYTON. What should we get done today?</h2>
+        <p class="muted small" style="margin:0.25rem 0 0;">Don't just ask AI. Get the work done — with explicit owner approvals for external actions.</p>
       </div>
     </div>
 

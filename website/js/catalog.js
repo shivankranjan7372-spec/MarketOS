@@ -1,18 +1,18 @@
 export const APP_SECTIONS = [
-  { id: "cyton", label: "Cyton Command Centre", icon: "orb", group: "Cyton AI" },
-  { id: "overview", label: "Overview", icon: "dashboard", group: "Workspace" },
-  { id: "ai_assistant", label: "AI Assistant", icon: "sparkles", group: "Workspace" },
-  { id: "campaign_planner", label: "Campaign Planner", icon: "campaign", group: "Create" },
-  { id: "social_media", label: "Social Media", icon: "share", group: "Create" },
-  { id: "seo_studio", label: "SEO Studio", icon: "globe", group: "Create" },
-  { id: "email_studio", label: "Email Studio", icon: "mail", group: "Create" },
-  { id: "brand_studio", label: "Brand Studio", icon: "palette", group: "Create" },
-  { id: "ads_studio", label: "Ads Studio", icon: "ads", group: "Create" },
-  { id: "content_calendar", label: "Content Calendar", icon: "calendar", group: "Publish & Track" },
-  { id: "approvals", label: "Approvals", icon: "check", group: "Publish & Track" },
-  { id: "analytics", label: "Analytics", icon: "chart", group: "Publish & Track" },
-  { id: "integrations", label: "Integrations", icon: "hub", group: "System" },
-  { id: "settings", label: "Settings", icon: "settings", group: "System" }
+  { id: "cyton", label: "CYTON Command Centre", icon: "orb", group: "CYTON" },
+  { id: "overview", label: "Overview", icon: "dashboard", group: "WORKSPACE" },
+  { id: "ai_assistant", label: "AI Assistant", icon: "sparkles", group: "WORKSPACE" },
+  { id: "campaign_planner", label: "Campaign Planner", icon: "campaign", group: "CREATE" },
+  { id: "social_media", label: "Social Media", icon: "share", group: "CREATE" },
+  { id: "seo_studio", label: "SEO Studio", icon: "globe", group: "CREATE" },
+  { id: "email_studio", label: "Email Studio", icon: "mail", group: "CREATE" },
+  { id: "brand_studio", label: "Brand Studio", icon: "palette", group: "CREATE" },
+  { id: "ads_studio", label: "Ads Studio", icon: "ads", group: "CREATE" },
+  { id: "content_calendar", label: "Content Calendar", icon: "calendar", group: "PUBLISH & TRACK" },
+  { id: "approvals", label: "Approvals", icon: "check", group: "PUBLISH & TRACK" },
+  { id: "analytics", label: "Analytics", icon: "chart", group: "PUBLISH & TRACK" },
+  { id: "integrations", label: "Integrations", icon: "hub", group: "SYSTEM" },
+  { id: "settings", label: "Settings", icon: "settings", group: "SYSTEM" }
 ];
 
 export const SUBSCRIPTION_TIERS = {

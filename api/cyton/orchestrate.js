@@ -311,7 +311,7 @@ async function callProvider({ provider, model, apiKey, endpointUrl, fullPrompt, 
     };
     if (isOpenRouter) {
       headers["HTTP-Referer"] = "https://marketosai.vercel.app";
-      headers["X-Title"] = "CYTON by MarketOS";
+      headers["X-Title"] = "MarketOS — CYTON Assistant";
     }
 
     const res = await fetch(baseUrl, {
