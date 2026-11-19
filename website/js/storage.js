@@ -18,7 +18,8 @@ const STORAGE_KEYS = {
   THEME: "marketos_theme",
   FIREBASE_APP_ID: "marketos_firebase_web_app_id",
   GEMINI_KEY: "marketos_gemini_api_key",
-  GEMINI_MODEL: "marketos_gemini_model"
+  GEMINI_MODEL: "marketos_gemini_model",
+  CYTON_GATEWAY: "cyton_gateway_config"
 };
 
 function uidGen(prefix = "id") {
@@ -59,6 +60,50 @@ export function savePreferences(partial) {
   if (partial.firebaseAppId !== undefined) localStorage.setItem(STORAGE_KEYS.FIREBASE_APP_ID, partial.firebaseAppId.trim());
   if (partial.geminiKey !== undefined) localStorage.setItem(STORAGE_KEYS.GEMINI_KEY, partial.geminiKey.trim());
   if (partial.geminiModel !== undefined) localStorage.setItem(STORAGE_KEYS.GEMINI_MODEL, partial.geminiModel.trim());
+}
+
+export function getCytonGatewayConfig() {
+  const prefs = getSavedPreferences();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.CYTON_GATEWAY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return {
+      provider: parsed.provider || "gemini",
+      model: parsed.model || prefs.geminiModel || "gemini-2.5-flash",
+      apiKey: parsed.apiKey !== undefined ? parsed.apiKey : prefs.geminiKey || "",
+      fallbackProvider: parsed.fallbackProvider || "",
+      fallbackModel: parsed.fallbackModel || "",
+      fallbackApiKey: parsed.fallbackApiKey || "",
+      endpointUrl: parsed.endpointUrl || "",
+      customInstructions: parsed.customInstructions || "",
+      autonomyMode: parsed.autonomyMode || "SUPERVISED"
+    };
+  } catch {
+    return {
+      provider: "gemini",
+      model: prefs.geminiModel || "gemini-2.5-flash",
+      apiKey: prefs.geminiKey || "",
+      fallbackProvider: "",
+      fallbackModel: "",
+      fallbackApiKey: "",
+      endpointUrl: "",
+      customInstructions: "",
+      autonomyMode: "SUPERVISED"
+    };
+  }
+}
+
+export function saveCytonGatewayConfig(partial) {
+  const current = getCytonGatewayConfig();
+  const next = { ...current, ...partial };
+  localStorage.setItem(STORAGE_KEYS.CYTON_GATEWAY, JSON.stringify(next));
+  if (next.provider === "gemini" && partial.apiKey !== undefined) {
+    savePreferences({ geminiKey: String(partial.apiKey || "") });
+  }
+  if (next.provider === "gemini" && partial.model !== undefined) {
+    savePreferences({ geminiModel: String(partial.model || "gemini-2.5-flash") });
+  }
+  return next;
 }
 
 /**
@@ -319,16 +364,26 @@ export class MarketOsWebStore {
   _readLocal(uid) {
     const key = STORAGE_KEYS.LOCAL_DB_PREFIX + uid;
     const raw = localStorage.getItem(key);
-    if (raw) return JSON.parse(raw);
-    return {
+    const base = {
       profile: null,
       businesses: [],
       campaigns: [],
       contentItems: [],
       integrations: [],
       aiMessages: [],
-      analytics: []
+      analytics: [],
+      cytonSettings: [],
+      cytonWorkflows: [],
+      cytonTasks: [],
+      cytonMemory: [],
+      cytonApprovals: [],
+      cytonLogs: [],
+      cytonUsage: []
     };
+    if (raw) {
+      return { ...base, ...JSON.parse(raw) };
+    }
+    return base;
   }
 
   _writeLocal(uid, data) {
@@ -393,7 +448,14 @@ export class MarketOsWebStore {
       contentItems: [],
       integrations: [],
       aiMessages: [],
-      analytics: []
+      analytics: [],
+      cytonSettings: [],
+      cytonWorkflows: [],
+      cytonTasks: [],
+      cytonMemory: [],
+      cytonApprovals: [],
+      cytonLogs: [],
+      cytonUsage: []
     };
     const emit = () => onUpdate({ ...state });
 
@@ -445,6 +507,13 @@ export class MarketOsWebStore {
     subCol("integrations", "integrations", false);
     subCol("ai_messages", "aiMessages", false);
     subCol("analytics_records", "analytics", true);
+    subCol("cyton_settings", "cytonSettings", true);
+    subCol("cyton_workflows", "cytonWorkflows", true);
+    subCol("cyton_tasks", "cytonTasks", true);
+    subCol("cyton_memory", "cytonMemory", true);
+    subCol("cyton_approvals", "cytonApprovals", true);
+    subCol("cyton_activity_logs", "cytonLogs", true);
+    subCol("cyton_usage", "cytonUsage", true);
   }
 
   // ---------- Mutations (mirroring MarketOsRepository.kt & firestore.rules) ----------
@@ -865,4 +934,409 @@ export class MarketOsWebStore {
       updatedAt: fsMod.serverTimestamp()
     });
   }
+
+  // ---------- CYTON AI Persistence (strictly aligned with firestore.rules) ----------
+  async saveCytonConversationMeta(uid, conv) {
+    const id = String(conv.id || uidGen("conv")).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 120);
+    const metaJson = JSON.stringify({
+      conversationId: id,
+      category: String(conv.category || "General assistance"),
+      pinned: Boolean(conv.pinned),
+      projectId: String(conv.projectId || ""),
+      updatedAtMs: Date.now()
+    }).slice(0, 3900);
+    const cleanTitle = String(conv.title || "New Conversation").trim().slice(0, 160) || "New Conversation";
+    const expiresAt = Math.floor(Date.now() / 1000) + 365 * 86400;
+
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      const exists = data.cytonMemory.find((m) => m.id === id);
+      if (exists) {
+        data.cytonMemory = data.cytonMemory.map((m) =>
+          m.id === id ? { ...m, title: cleanTitle, content: metaJson, updatedAtMs: Date.now() } : m
+        );
+      } else {
+        data.cytonMemory.unshift({
+          id,
+          userId: uid,
+          businessId: conv.businessId,
+          memoryType: "WORKFLOW_SUMMARY",
+          title: cleanTitle,
+          content: metaJson,
+          sourceAgent: "CYTON_CHAT_META",
+          retentionDays: 365,
+          expiresAtEpoch: expiresAt,
+          createdAtMs: Date.now(),
+          updatedAtMs: Date.now()
+        });
+      }
+      this._writeLocal(uid, data);
+      return id;
+    }
+
+    const { fsMod } = this.firebaseModules;
+    const ref = fsMod.doc(this.db, "users", uid, "cyton_memory", id);
+    const snap = await fsMod.getDoc(ref);
+    if (snap.exists()) {
+      await fsMod.updateDoc(ref, {
+        title: cleanTitle,
+        content: metaJson,
+        retentionDays: 365,
+        expiresAtEpoch: expiresAt,
+        updatedAt: fsMod.serverTimestamp()
+      });
+    } else {
+      await fsMod.setDoc(ref, {
+        userId: uid,
+        businessId: conv.businessId,
+        memoryType: "WORKFLOW_SUMMARY",
+        title: cleanTitle,
+        content: metaJson,
+        sourceAgent: "CYTON_CHAT_META",
+        retentionDays: 365,
+        expiresAtEpoch: expiresAt,
+        createdAt: fsMod.serverTimestamp(),
+        updatedAt: fsMod.serverTimestamp()
+      });
+    }
+    return id;
+  }
+
+  async deleteCytonConversation(uid, conversationId, messageIds = []) {
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      data.cytonMemory = data.cytonMemory.filter((m) => m.id !== conversationId);
+      const msgSet = new Set(messageIds);
+      data.aiMessages = data.aiMessages.filter((m) => !msgSet.has(m.id));
+      this._writeLocal(uid, data);
+      return;
+    }
+    const { fsMod } = this.firebaseModules;
+    await fsMod.deleteDoc(fsMod.doc(this.db, "users", uid, "cyton_memory", conversationId)).catch(() => {});
+    for (const mid of messageIds) {
+      await fsMod.deleteDoc(fsMod.doc(this.db, "users", uid, "ai_messages", mid)).catch(() => {});
+    }
+  }
+
+  async saveCytonProject(uid, project, isEdit = false) {
+    const clean = {
+      name: String(project.name || "Untitled Project").trim().slice(0, 120) || "Untitled Project",
+      objective: String(project.objective || "").slice(0, 1000),
+      agentsInvolved:
+        Array.isArray(project.agentsInvolved) && project.agentsInvolved.length
+          ? project.agentsInvolved.slice(0, 6)
+          : ["MARKETING", "CREATIVE", "OPERATIONS"],
+      triggerType: ["MANUAL", "SCHEDULED", "METRIC_EVENT"].includes(project.triggerType) ? project.triggerType : "MANUAL",
+      creditBudgetCap: Math.max(0, Math.floor(Number(project.creditBudgetCap) || 100)),
+      enabled: project.enabled !== false,
+      lastRunAtEpoch: Math.max(0, Math.floor(Number(project.lastRunAtEpoch) || Math.floor(Date.now() / 1000)))
+    };
+
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      if (isEdit && project.id) {
+        data.cytonWorkflows = data.cytonWorkflows.map((w) =>
+          w.id === project.id ? { ...w, ...clean, updatedAtMs: Date.now() } : w
+        );
+        this._writeLocal(uid, data);
+        return project.id;
+      }
+      const id = uidGen("prj");
+      data.cytonWorkflows.unshift({
+        ...clean,
+        id,
+        userId: uid,
+        businessId: project.businessId,
+        createdAtMs: Date.now(),
+        updatedAtMs: Date.now()
+      });
+      this._writeLocal(uid, data);
+      return id;
+    }
+
+    const { fsMod } = this.firebaseModules;
+    if (isEdit && project.id) {
+      await fsMod.updateDoc(fsMod.doc(this.db, "users", uid, "cyton_workflows", project.id), {
+        ...clean,
+        updatedAt: fsMod.serverTimestamp()
+      });
+      return project.id;
+    }
+    const ref = await fsMod.addDoc(fsMod.collection(this.db, "users", uid, "cyton_workflows"), {
+      ...clean,
+      userId: uid,
+      businessId: project.businessId,
+      createdAt: fsMod.serverTimestamp(),
+      updatedAt: fsMod.serverTimestamp()
+    });
+    return ref.id;
+  }
+
+  async deleteCytonProject(uid, projectId) {
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      data.cytonWorkflows = data.cytonWorkflows.filter((w) => w.id !== projectId);
+      this._writeLocal(uid, data);
+      return;
+    }
+    const { fsMod } = this.firebaseModules;
+    await fsMod.deleteDoc(fsMod.doc(this.db, "users", uid, "cyton_workflows", projectId));
+  }
+
+  async createCytonTask(uid, task) {
+    const allowedAgents = ["ANALYST", "MARKETING", "CREATIVE", "FINANCE", "GROWTH", "OPERATIONS"];
+    const agent = allowedAgents.includes(task.assignedAgent) ? task.assignedAgent : "OPERATIONS";
+    const initialStatus = task.status === "AWAITING_APPROVAL" ? "AWAITING_APPROVAL" : "QUEUED";
+    const docData = {
+      userId: uid,
+      businessId: task.businessId,
+      workflowId: String(task.workflowId || "").slice(0, 128),
+      idempotencyKey: String(task.idempotencyKey || uidGen("idem")).slice(0, 128),
+      assignedAgent: agent,
+      requestedTool: String(task.requestedTool || "cyton_orchestrator").slice(0, 80),
+      title: String(task.title || "Cyton Task").slice(0, 160),
+      inputSummary: String(task.inputSummary || "").slice(0, 4000),
+      priority: ["LOW", "NORMAL", "HIGH", "CRITICAL"].includes(task.priority) ? task.priority : "NORMAL",
+      status: initialStatus,
+      retryCount: 0,
+      maxRetries: 3,
+      estimatedCredits: Math.max(0, Math.floor(Number(task.estimatedCredits) || 1)),
+      actualCredits: Math.max(0, Math.floor(Number(task.actualCredits) || 0)),
+      requiresApproval: Boolean(task.requiresApproval),
+      resultSummary: String(task.resultSummary || "").slice(0, 8000),
+      errorMessage: String(task.errorMessage || "").slice(0, 1000),
+      scheduledRunAtEpoch: Math.max(0, Math.floor(Number(task.scheduledRunAtEpoch) || Math.floor(Date.now() / 1000)))
+    };
+
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      const id = uidGen("tsk");
+      data.cytonTasks.unshift({ ...docData, id, createdAtMs: Date.now(), updatedAtMs: Date.now() });
+      this._writeLocal(uid, data);
+      return id;
+    }
+
+    const { fsMod } = this.firebaseModules;
+    const ref = await fsMod.addDoc(fsMod.collection(this.db, "users", uid, "cyton_tasks"), {
+      ...docData,
+      createdAt: fsMod.serverTimestamp(),
+      updatedAt: fsMod.serverTimestamp()
+    });
+    return ref.id;
+  }
+
+  async updateCytonTask(uid, taskId, fields) {
+    const allowed = {};
+    if (fields.status !== undefined) allowed.status = fields.status;
+    if (fields.retryCount !== undefined) allowed.retryCount = fields.retryCount;
+    if (fields.actualCredits !== undefined) allowed.actualCredits = fields.actualCredits;
+    if (fields.requiresApproval !== undefined) allowed.requiresApproval = Boolean(fields.requiresApproval);
+    if (fields.resultSummary !== undefined) allowed.resultSummary = String(fields.resultSummary).slice(0, 8000);
+    if (fields.errorMessage !== undefined) allowed.errorMessage = String(fields.errorMessage).slice(0, 1000);
+
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      data.cytonTasks = data.cytonTasks.map((t) =>
+        t.id === taskId ? { ...t, ...allowed, updatedAtMs: Date.now() } : t
+      );
+      this._writeLocal(uid, data);
+      return;
+    }
+
+    const { fsMod } = this.firebaseModules;
+    await fsMod.updateDoc(fsMod.doc(this.db, "users", uid, "cyton_tasks", taskId), {
+      ...allowed,
+      updatedAt: fsMod.serverTimestamp()
+    });
+  }
+
+  async saveCytonMemory(uid, mem) {
+    const allowedTypes = [
+      "PREFERENCE",
+      "BRAND_GUIDELINE",
+      "DECISION",
+      "APPROVED_REC",
+      "REJECTED_REC",
+      "WORKFLOW_SUMMARY",
+      "PERFORMANCE_SUMMARY"
+    ];
+    const docData = {
+      userId: uid,
+      businessId: mem.businessId,
+      memoryType: allowedTypes.includes(mem.memoryType) ? mem.memoryType : "PREFERENCE",
+      title: String(mem.title || "Saved Context").slice(0, 160),
+      content: String(mem.content || "").slice(0, 4000) || "-",
+      sourceAgent: String(mem.sourceAgent || "USER_EXPLICIT").slice(0, 64),
+      retentionDays: Math.min(3650, Math.max(1, Math.floor(Number(mem.retentionDays) || 180))),
+      expiresAtEpoch: Math.floor(Date.now() / 1000) + 180 * 86400
+    };
+
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      const id = uidGen("mem");
+      data.cytonMemory.unshift({ ...docData, id, createdAtMs: Date.now(), updatedAtMs: Date.now() });
+      this._writeLocal(uid, data);
+      return id;
+    }
+    const { fsMod } = this.firebaseModules;
+    const ref = await fsMod.addDoc(fsMod.collection(this.db, "users", uid, "cyton_memory"), {
+      ...docData,
+      createdAt: fsMod.serverTimestamp(),
+      updatedAt: fsMod.serverTimestamp()
+    });
+    return ref.id;
+  }
+
+  async deleteCytonMemory(uid, memoryId) {
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      data.cytonMemory = data.cytonMemory.filter((m) => m.id !== memoryId);
+      this._writeLocal(uid, data);
+      return;
+    }
+    const { fsMod } = this.firebaseModules;
+    await fsMod.deleteDoc(fsMod.doc(this.db, "users", uid, "cyton_memory", memoryId));
+  }
+
+  async createCytonApproval(uid, appr) {
+    const validActions = [
+      "PUBLISH_CONTENT",
+      "PUBLISH_AD",
+      "SPEND_OVER_BUDGET",
+      "DELETE_BUSINESS_DATA",
+      "CHANGE_SUBSCRIPTION_OR_BILLING",
+      "IRREVERSIBLE_EXTERNAL_ACTION"
+    ];
+    const docData = {
+      userId: uid,
+      businessId: appr.businessId,
+      taskId: String(appr.taskId || "").slice(0, 128),
+      requestedByAgent: String(appr.requestedByAgent || "CYTON_ORCHESTRATOR").slice(0, 64),
+      actionType: validActions.includes(appr.actionType) ? appr.actionType : "IRREVERSIBLE_EXTERNAL_ACTION",
+      summary: String(appr.summary || "Approve external action").slice(0, 1000),
+      targetCollection: String(appr.targetCollection || "cyton_tasks").slice(0, 64),
+      targetId: String(appr.targetId || "").slice(0, 128),
+      estimatedSpend: Math.max(0, Number(appr.estimatedSpend) || 0),
+      currencyCode: String(appr.currencyCode || "USD").slice(0, 3).toUpperCase(),
+      decision: "PENDING",
+      decisionNote: "",
+      decidedAtEpoch: 0
+    };
+
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      const id = uidGen("cap");
+      data.cytonApprovals.unshift({ ...docData, id, createdAtMs: Date.now(), updatedAtMs: Date.now() });
+      this._writeLocal(uid, data);
+      return id;
+    }
+    const { fsMod } = this.firebaseModules;
+    const ref = await fsMod.addDoc(fsMod.collection(this.db, "users", uid, "cyton_approvals"), {
+      ...docData,
+      createdAt: fsMod.serverTimestamp(),
+      updatedAt: fsMod.serverTimestamp()
+    });
+    return ref.id;
+  }
+
+  async decideCytonApproval(uid, approvalId, approve, note = "") {
+    const updateFields = {
+      decision: approve ? "APPROVED" : "REJECTED",
+      decisionNote: String(note || (approve ? "Confirmed by owner" : "Rejected by owner")).slice(0, 500),
+      decidedAtEpoch: Math.floor(Date.now() / 1000)
+    };
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      data.cytonApprovals = data.cytonApprovals.map((a) =>
+        a.id === approvalId ? { ...a, ...updateFields, updatedAtMs: Date.now() } : a
+      );
+      this._writeLocal(uid, data);
+      return;
+    }
+    const { fsMod } = this.firebaseModules;
+    await fsMod.updateDoc(fsMod.doc(this.db, "users", uid, "cyton_approvals", approvalId), {
+      ...updateFields,
+      updatedAt: fsMod.serverTimestamp()
+    });
+  }
+
+  async appendCytonLog(uid, log) {
+    const docData = {
+      userId: uid,
+      businessId: log.businessId,
+      actor: String(log.actor || "CYTON").slice(0, 80),
+      action: String(log.action || "ORCHESTRATE").slice(0, 160),
+      outcome: ["SUCCESS", "BLOCKED", "FAILED", "PENDING_APPROVAL"].includes(log.outcome) ? log.outcome : "SUCCESS",
+      idempotencyKey: String(log.idempotencyKey || uidGen("log")).slice(0, 128),
+      details: String(log.details || "").slice(0, 2000)
+    };
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      data.cytonLogs.unshift({ ...docData, id: uidGen("clog"), createdAtMs: Date.now() });
+      if (data.cytonLogs.length > 200) data.cytonLogs = data.cytonLogs.slice(0, 200);
+      this._writeLocal(uid, data);
+      return;
+    }
+    const { fsMod } = this.firebaseModules;
+    await fsMod.addDoc(fsMod.collection(this.db, "users", uid, "cyton_activity_logs"), {
+      ...docData,
+      createdAt: fsMod.serverTimestamp()
+    });
+  }
+
+  async saveCytonSettings(uid, businessId, settings) {
+    const clean = {
+      userId: uid,
+      businessId,
+      autonomyMode: ["SUPERVISED", "SEMI_AUTONOMOUS", "AUTONOMOUS_DRAFTS"].includes(settings.autonomyMode)
+        ? settings.autonomyMode
+        : "SUPERVISED",
+      emergencyPaused: Boolean(settings.emergencyPaused),
+      dailyCreditBudget: Math.min(100000, Math.max(0, Math.floor(Number(settings.dailyCreditBudget) || 100))),
+      maxTasksPerHour: Math.min(500, Math.max(1, Math.floor(Number(settings.maxTasksPerHour) || 20))),
+      voiceEnabled: settings.voiceEnabled !== false,
+      proactiveMonitoringEnabled: Boolean(settings.proactiveMonitoringEnabled),
+      monitorIntervalMinutes: Math.min(10080, Math.max(5, Math.floor(Number(settings.monitorIntervalMinutes) || 60))),
+      allowDashboardContext: settings.allowDashboardContext !== false
+    };
+
+    const docId = `cfg_${businessId}`.slice(0, 120);
+    if (this.mode === "local") {
+      const data = this._readLocal(uid);
+      const exists = data.cytonSettings.find((s) => s.businessId === businessId);
+      if (exists) {
+        data.cytonSettings = data.cytonSettings.map((s) =>
+          s.businessId === businessId ? { ...s, ...clean, updatedAtMs: Date.now() } : s
+        );
+      } else {
+        data.cytonSettings.unshift({ ...clean, id: docId, createdAtMs: Date.now(), updatedAtMs: Date.now() });
+      }
+      this._writeLocal(uid, data);
+      return;
+    }
+
+    const { fsMod } = this.firebaseModules;
+    const ref = fsMod.doc(this.db, "users", uid, "cyton_settings", docId);
+    const snap = await fsMod.getDoc(ref);
+    if (snap.exists()) {
+      await fsMod.updateDoc(ref, {
+        autonomyMode: clean.autonomyMode,
+        emergencyPaused: clean.emergencyPaused,
+        dailyCreditBudget: clean.dailyCreditBudget,
+        maxTasksPerHour: clean.maxTasksPerHour,
+        voiceEnabled: clean.voiceEnabled,
+        proactiveMonitoringEnabled: clean.proactiveMonitoringEnabled,
+        monitorIntervalMinutes: clean.monitorIntervalMinutes,
+        allowDashboardContext: clean.allowDashboardContext,
+        updatedAt: fsMod.serverTimestamp()
+      });
+    } else {
+      await fsMod.setDoc(ref, {
+        ...clean,
+        createdAt: fsMod.serverTimestamp(),
+        updatedAt: fsMod.serverTimestamp()
+      });
+    }
+  }
 }
+

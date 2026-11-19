@@ -830,9 +830,490 @@ button, input, select, textarea {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
 }
 
+/* =========================================================
+   CYTON COMMAND CENTRE — 3-PANEL AUTONOMOUS AI WORKSPACE
+   ========================================================= */
+
+.cyton-full-wrap {
+  max-width: none !important;
+  padding: 0.75rem !important;
+  height: calc(100vh - 58px);
+  display: flex;
+  flex-direction: column;
+}
+
+.cyton-shell {
+  display: grid;
+  grid-template-columns: 272px minmax(0, 1fr) 292px;
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+}
+
+.cyton-shell.left-collapsed {
+  grid-template-columns: minmax(0, 1fr) 292px;
+}
+
+.cyton-shell.right-collapsed {
+  grid-template-columns: 272px minmax(0, 1fr);
+}
+
+.cyton-shell.left-collapsed.right-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.cyton-shell.left-collapsed .cyton-left,
+.cyton-shell.right-collapsed .cyton-right {
+  display: none;
+}
+
+.cyton-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cyton-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.cy-compact-input {
+  padding: 0.44rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.cy-scroll-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-right: 0.15rem;
+}
+
+.cy-section-label {
+  font-size: 0.71rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0.35rem 0 0.15rem;
+}
+
+.cy-conv-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: var(--bg-subtle);
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.cy-conv-item:hover {
+  border-color: var(--border);
+  background: var(--bg-card-hi);
+}
+
+.cy-conv-item.active {
+  border-color: var(--border-hi);
+  background: var(--purple-soft);
+}
+
+.cy-conv-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.cy-conv-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cy-conv-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cy-conv-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.cy-icon-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  border-radius: 6px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 0.25rem;
+  cursor: pointer;
+  font-size: 0.76rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.14s ease, background 0.14s ease;
+}
+
+.cy-icon-btn:hover {
+  color: var(--purple-bright);
+  background: var(--bg-subtle);
+}
+
+.cy-mini-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.cy-mini-item:hover,
+.cy-mini-item.active {
+  border-color: var(--border-hi);
+  background: var(--purple-soft);
+  color: var(--text);
+}
+
+.cy-mem-card {
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.6rem;
+}
+
+/* Centre Panel */
+.cyton-centre {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.cyton-centre-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+
+.cy-sub-btn.active-sub {
+  background: var(--purple-soft);
+  border-color: var(--border-hi);
+  color: var(--purple-bright);
+}
+
+.cyton-centre-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Animated Cyton Intelligence Core Orb */
+.cyton-core-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0.85rem 0.5rem 0.35rem;
+  background: radial-gradient(circle at 50% 40%, rgba(0, 210, 255, 0.08), transparent 68%);
+  border-radius: var(--radius-lg);
+}
+
+.cyton-core-copy {
+  margin-top: 0.65rem;
+  max-width: 620px;
+}
+
+.cyton-orb {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.orb-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 210, 255, 0.35);
+  pointer-events: none;
+}
+
+.orb-ring.ring-1 {
+  inset: 2px;
+  border-style: dashed;
+  border-color: rgba(0, 210, 255, 0.45);
+  animation: cytonSpinSlow 16s linear infinite;
+}
+
+.orb-ring.ring-2 {
+  inset: 11px;
+  border-color: rgba(14, 165, 233, 0.4);
+  animation: cytonSpinReverse 11s linear infinite;
+}
+
+.orb-nucleus {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 32% 30%, #38bdf8, #0284c7 55%, #06182c 100%);
+  border: 1px solid rgba(0, 210, 255, 0.65);
+  box-shadow: 0 0 28px rgba(0, 210, 255, 0.32), inset 0 0 18px rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.cyton-orb.orb-idle .orb-nucleus {
+  animation: cytonBreathe 4.2s ease-in-out infinite;
+}
+
+.cyton-orb.orb-listening .orb-nucleus {
+  background: radial-gradient(circle at 32% 30%, #67e8f9, #06b6d4 58%, #083344 100%);
+  box-shadow: 0 0 36px rgba(6, 182, 212, 0.55);
+  animation: cytonPulseActive 1.1s ease-in-out infinite;
+}
+
+.cyton-orb.orb-thinking .orb-ring.ring-1,
+.cyton-orb.orb-planning .orb-ring.ring-1,
+.cyton-orb.orb-creating .orb-ring.ring-1,
+.cyton-orb.orb-executing .orb-ring.ring-1 {
+  animation-duration: 2.8s;
+  border-color: rgba(0, 210, 255, 0.85);
+}
+
+.cyton-orb.orb-thinking .orb-ring.ring-2,
+.cyton-orb.orb-planning .orb-ring.ring-2,
+.cyton-orb.orb-creating .orb-ring.ring-2,
+.cyton-orb.orb-executing .orb-ring.ring-2 {
+  animation-duration: 2.1s;
+  border-color: rgba(56, 189, 248, 0.8);
+}
+
+.cyton-orb.orb-thinking .orb-nucleus,
+.cyton-orb.orb-planning .orb-nucleus,
+.cyton-orb.orb-creating .orb-nucleus,
+.cyton-orb.orb-executing .orb-nucleus {
+  animation: cytonPulseActive 1.3s ease-in-out infinite;
+}
+
+.cyton-orb.orb-completed .orb-nucleus {
+  background: radial-gradient(circle at 32% 30%, #34d399, #059669 60%, #052e16 100%);
+  border-color: rgba(16, 185, 129, 0.85);
+  box-shadow: 0 0 32px rgba(16, 185, 129, 0.45);
+}
+
+.cyton-orb.orb-completed .orb-ring {
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.cyton-orb.orb-error .orb-nucleus {
+  background: radial-gradient(circle at 32% 30%, #fb7185, #e11d48 60%, #4c0519 100%);
+  border-color: rgba(244, 63, 94, 0.85);
+  box-shadow: 0 0 32px rgba(244, 63, 94, 0.42);
+}
+
+.cyton-orb.orb-error .orb-ring {
+  border-color: rgba(244, 63, 94, 0.45);
+  animation-play-state: paused;
+}
+
+@keyframes cytonSpinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cytonSpinReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes cytonBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+
+@keyframes cytonPulseActive {
+  0%, 100% { transform: scale(0.97); }
+  50% { transform: scale(1.08); }
+}
+
+/* Conversation Stream & Execution Plan Steps */
+.cy-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cy-msg {
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  animation: fadeSlideUp 0.2s ease both;
+}
+
+.cy-msg-user {
+  align-self: flex-end;
+  max-width: min(760px, 92%);
+  background: var(--purple-soft);
+  border-color: var(--border-hi);
+}
+
+.cy-msg-ai {
+  align-self: stretch;
+  background: var(--bg-elevated);
+}
+
+.cy-plan-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.48rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+}
+
+/* Bottom Command Bar */
+.cyton-command-bar {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cy-shortcuts-row {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  scrollbar-width: thin;
+}
+
+.cy-shortcuts-row .chip {
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  padding: 0.28rem 0.65rem;
+}
+
+.cy-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.cy-command-textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 150px;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+/* Responsive Cyton Command Centre */
+@media (max-width: 1220px) {
+  .cyton-shell {
+    grid-template-columns: 240px minmax(0, 1fr) 256px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .cyton-full-wrap {
+    height: auto;
+    min-height: calc(100vh - 58px);
+  }
+  .cyton-shell,
+  .cyton-shell.left-collapsed,
+  .cyton-shell.right-collapsed,
+  .cyton-shell.left-collapsed.right-collapsed {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .cyton-centre {
+    order: -1;
+    min-height: 70vh;
+  }
+  .cyton-panel {
+    max-height: 360px;
+  }
+  .cy-input-row {
+    flex-wrap: wrap;
+  }
+  .cy-command-textarea {
+    min-width: 100%;
+    order: -1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-card,
-  .hero-banner {
+  .hero-banner,
+  .cy-msg,
+  .orb-ring.ring-1,
+  .orb-ring.ring-2,
+  .orb-nucleus {
     animation: none !important;
   }
 }

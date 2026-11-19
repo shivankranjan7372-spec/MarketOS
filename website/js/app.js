@@ -24,6 +24,7 @@ import {
   getSavedPreferences,
   savePreferences
 } from "./storage.js";
+import { renderCytonCommandCentre } from "./cyton-ui.js";
 
 const store = new MarketOsWebStore();
 
@@ -38,7 +39,14 @@ const appState = {
   integrations: [],
   aiMessages: [],
   analytics: [],
-  activeSection: "overview",
+  cytonSettings: [],
+  cytonWorkflows: [],
+  cytonTasks: [],
+  cytonMemory: [],
+  cytonApprovals: [],
+  cytonLogs: [],
+  cytonUsage: [],
+  activeSection: "cyton",
   exchangeRates: null,
   aiStatus: "idle", // idle | loading | success | error
   aiDeliverable: null,
@@ -190,6 +198,13 @@ async function startUserSession(session) {
       appState.integrations = snapshot.integrations || [];
       appState.aiMessages = snapshot.aiMessages || [];
       appState.analytics = snapshot.analytics || [];
+      appState.cytonSettings = snapshot.cytonSettings || [];
+      appState.cytonWorkflows = snapshot.cytonWorkflows || [];
+      appState.cytonTasks = snapshot.cytonTasks || [];
+      appState.cytonMemory = snapshot.cytonMemory || [];
+      appState.cytonApprovals = snapshot.cytonApprovals || [];
+      appState.cytonLogs = snapshot.cytonLogs || [];
+      appState.cytonUsage = snapshot.cytonUsage || [];
       if (appState.businesses.length === 0) {
         if (!appState.onboarding) initOnboardingDraft();
         appState.screen = "onboarding";
@@ -1106,7 +1121,7 @@ function renderAppShell(root) {
   const pendingCount = items.filter((i) => i.approvalStatus === "PENDING_APPROVAL").length;
   const scheduledCount = items.filter((i) => i.approvalStatus === "SCHEDULED").length;
 
-  const groups = ["Workspace", "Create", "Publish & Track", "System"];
+  const groups = ["Cyton AI", "Workspace", "Create", "Publish & Track", "System"];
   const navHtml = groups
     .map((grp) => {
       const links = APP_SECTIONS.filter((s) => s.group === grp)
@@ -1130,8 +1145,8 @@ function renderAppShell(root) {
         <div class="brand-row">
           <img src="./assets/logo.svg" alt="MarketOS" />
           <div>
-            <div class="brand-name">Market<span>OS</span></div>
-            <div class="brand-sub">Plan • Create • Grow</div>
+            <div class="brand-name">CYTON <span>AI</span></div>
+            <div class="brand-sub">by MarketOS</div>
           </div>
         </div>
         ${navHtml}
@@ -1152,6 +1167,9 @@ function renderAppShell(root) {
             <button id="btn-topbar-add-biz" class="btn btn-outline btn-sm" type="button">+ Business</button>
           </div>
           <div class="topbar-right">
+            <button id="btn-topbar-cyton" class="btn ${appState.activeSection === "cyton" ? "btn-primary" : "btn-outline"} btn-sm" type="button">
+              ✦ Cyton Core
+            </button>
             <span class="badge ${appState.sessionMode === "firebase" ? "emerald" : "sky"}">
               ${appState.sessionMode === "firebase" ? "Cloud Sync" : "Web Session"}
             </span>
@@ -1161,7 +1179,7 @@ function renderAppShell(root) {
           </div>
         </header>
 
-        <main class="content-wrap" id="section-content"></main>
+        <main class="content-wrap ${appState.activeSection === "cyton" ? "cyton-full-wrap" : ""}" id="section-content"></main>
       </div>
     </div>
   `;
@@ -1183,6 +1201,11 @@ function renderAppShell(root) {
       render();
     });
   });
+  document.getElementById("btn-topbar-cyton")?.addEventListener("click", () => {
+    appState.activeSection = "cyton";
+    appState.sidebarOpen = false;
+    render();
+  });
   document.getElementById("workspace-switcher")?.addEventListener("change", async (e) => {
     await store.setActiveBusinessId(appState.user.uid, e.target.value);
     toast("Switched business workspace");
@@ -1198,6 +1221,9 @@ function renderAppShell(root) {
 
   const main = document.getElementById("section-content");
   switch (appState.activeSection) {
+    case "cyton":
+      renderCytonCommandCentre(main, { appState, store, biz, toast, openModal, closeModal, render });
+      break;
     case "overview":
       renderOverview(main, biz, country);
       break;

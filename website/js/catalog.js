@@ -1,4 +1,5 @@
 export const APP_SECTIONS = [
+  { id: "cyton", label: "Cyton Command Centre", icon: "orb", group: "Cyton AI" },
   { id: "overview", label: "Overview", icon: "dashboard", group: "Workspace" },
   { id: "ai_assistant", label: "AI Assistant", icon: "sparkles", group: "Workspace" },
   { id: "campaign_planner", label: "Campaign Planner", icon: "campaign", group: "Create" },
@@ -282,3 +283,130 @@ export async function fetchLiveExchangeRates() {
     };
   }
 }
+
+// ---------------- CYTON AI Autonomous Workspace Catalog ----------------
+export const CYTON_CATEGORIES = [
+  "Marketing",
+  "Business strategy",
+  "Social media",
+  "Content creation",
+  "Graphic design",
+  "Research",
+  "Email communication",
+  "Productivity",
+  "Document creation",
+  "Data analysis",
+  "Education",
+  "Coding",
+  "Website development",
+  "Project management",
+  "General assistance"
+];
+
+export const CYTON_ACTION_CLASSES = {
+  READ: { id: "READ", label: "Read", requiresApproval: false, description: "Read authorized project or web information" },
+  CREATE: { id: "CREATE", label: "Create", requiresApproval: false, description: "Create drafts, briefs, documents, and task plans" },
+  MODIFY: { id: "MODIFY", label: "Modify", requiresApproval: false, description: "Update internal drafts or workspace settings" },
+  PUBLISH: { id: "PUBLISH", label: "Publish", requiresApproval: true, description: "Publish content to external platforms (owner approval required)" },
+  SEND: { id: "SEND", label: "Send", requiresApproval: true, description: "Send external emails or messages (owner approval required)" },
+  DELETE: { id: "DELETE", label: "Delete", requiresApproval: true, description: "Delete stored files or records (owner approval required)" }
+};
+
+export const CYTON_MODEL_PROVIDERS = [
+  {
+    id: "gemini",
+    name: "Google Gemini",
+    defaultModel: "gemini-2.5-flash",
+    models: ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"],
+    supportsVision: true,
+    note: "Multimodal text, image & document analysis via Google AI"
+  },
+  {
+    id: "openai",
+    name: "OpenAI",
+    defaultModel: "gpt-4o-mini",
+    models: ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"],
+    supportsVision: true,
+    note: "Structured reasoning and JSON workflow orchestration"
+  },
+  {
+    id: "anthropic",
+    name: "Anthropic Claude",
+    defaultModel: "claude-3-5-sonnet-latest",
+    models: ["claude-3-5-sonnet-latest", "claude-3-5-haiku-latest"],
+    supportsVision: true,
+    note: "Long-form writing, strategy, and coding execution"
+  },
+  {
+    id: "openrouter",
+    name: "OpenRouter Gateway",
+    defaultModel: "google/gemini-2.5-flash",
+    models: ["google/gemini-2.5-flash", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet"],
+    supportsVision: true,
+    note: "Multi-model router across open & frontier models"
+  },
+  {
+    id: "custom",
+    name: "Custom / Self-Hosted (OpenAI-Compatible)",
+    defaultModel: "llama-3.3-70b-instruct",
+    models: ["llama-3.3-70b-instruct", "qwen-2.5-72b-instruct"],
+    supportsVision: false,
+    note: "Connect your own OpenAI-compatible gateway endpoint"
+  }
+];
+
+export const CYTON_SUBSCRIPTION_PLANS = {
+  FREE: {
+    id: "FREE",
+    mappedTier: "STARTER",
+    name: "Free",
+    monthlyRequests: 25,
+    maxProjects: 2,
+    summary: "Basic chat, up to 25 AI executions/mo, 2 projects, Markdown & CSV exports"
+  },
+  PRO: {
+    id: "PRO",
+    mappedTier: "GROWTH",
+    name: "Pro",
+    monthlyRequests: 150,
+    maxProjects: 10,
+    summary: "150 AI executions/mo, multi-provider gateway, 10 projects, slide decks & creative studio"
+  },
+  BUSINESS: {
+    id: "BUSINESS",
+    mappedTier: "BUSINESS",
+    name: "Business",
+    monthlyRequests: 600,
+    maxProjects: 50,
+    summary: "600 AI executions/mo, unlimited workflows, audit trails, advanced OAuth & team governance"
+  }
+};
+
+export const CYTON_MARKETPLACE_INTEGRATIONS = [
+  { id: "gmail", name: "Gmail", category: "Email & Comms", icon: "✉", description: "Draft outreach emails, follow-ups, and send with explicit confirmation.", permissions: "gmail.compose, gmail.readonly", oauthKey: "gmail" },
+  { id: "google_drive", name: "Google Drive", category: "Documents", icon: "📁", description: "Store generated proposals, marketing plans, and brand assets.", permissions: "drive.file", oauthKey: "google_drive" },
+  { id: "google_calendar", name: "Google Calendar", category: "Scheduling", icon: "📅", description: "Schedule campaign launch dates and weekly execution reminders.", permissions: "calendar.events", oauthKey: "google_calendar" },
+  { id: "instagram", name: "Instagram", category: "Social Media", icon: "📸", description: "Prepare captions, reels, and publish approved posts via Meta Graph API.", permissions: "instagram_basic, instagram_content_publish", oauthKey: "instagram" },
+  { id: "facebook", name: "Facebook", category: "Social Media", icon: "📘", description: "Manage business page drafts and approved campaigns.", permissions: "pages_manage_posts, pages_read_engagement", oauthKey: "facebook" },
+  { id: "linkedin", name: "LinkedIn", category: "Social Media", icon: "💼", description: "Publish B2B thought-leadership and company updates after approval.", permissions: "openid, profile, w_member_social", oauthKey: "linkedin" },
+  { id: "youtube", name: "YouTube", category: "Video", icon: "▶", description: "Video scripts, titles, descriptions, thumbnail briefs & channel sync.", permissions: "youtube.readonly, youtube.upload", oauthKey: "youtube" },
+  { id: "x", name: "X", category: "Social Media", icon: "𝕏", description: "Draft threads, launch announcements, and scheduled posts.", permissions: "tweet.read, tweet.write", oauthKey: "x" },
+  { id: "canva", name: "Canva", category: "Design", icon: "🎨", description: "Creative briefs and visual asset handoff to Canva templates.", permissions: "design:content:read, design:content:write", oauthKey: "canva" },
+  { id: "slack", name: "Slack", category: "Collaboration", icon: "#", description: "Send approved task summaries and team notifications to Slack channels.", permissions: "chat:write, channels:read", oauthKey: "slack" },
+  { id: "notion", name: "Notion", category: "Knowledge", icon: "📝", description: "Sync marketing plans, SOPs, and project briefs to Notion pages.", permissions: "read_content, insert_content", oauthKey: "notion" },
+  { id: "discord", name: "Discord", category: "Community", icon: "💬", description: "Post approved community announcements via Discord webhooks/OAuth.", permissions: "identify, webhook.incoming", oauthKey: "discord" },
+  { id: "website_research", name: "Live Web Research", category: "Research", icon: "🌐", description: "Real server-side HTML/metadata inspection for competitor & SEO audits (Active now).", permissions: "Public HTTP/HTTPS GET (SSRF protected)", oauthKey: null, builtIn: true },
+  { id: "email_esp", name: "Email Delivery (Resend/SendGrid)", category: "Email & Comms", icon: "📨", description: "Server-side transactional/outreach email dispatch or mailto draft launch.", permissions: "Explicit send confirmation", oauthKey: null, builtIn: true }
+];
+
+export const CYTON_EXAMPLE_COMMANDS = [
+  "Create a marketing strategy for my clothing brand.",
+  "Generate five Instagram post ideas.",
+  "Write an email to a potential business client.",
+  "Create a complete product launch campaign.",
+  "Research my competitors.",
+  "Build a weekly productivity plan.",
+  "Create an advertisement concept.",
+  "Turn this document into a presentation."
+];
+
