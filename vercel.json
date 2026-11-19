@@ -3,6 +3,12 @@
   "framework": null,
   "outputDirectory": "website",
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/((?!assets/|js/|styles\\.css$|robots\\.txt$|sitemap\\.xml$).*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
