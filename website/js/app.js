@@ -354,7 +354,7 @@ function render() {
   if (appState.screen === "splash") {
     root.innerHTML = `
       <div class="splash-screen">
-        <img src="./assets/logo.svg" alt="MarketOS logo" width="76" height="76" class="splash-logo" />
+        <img src="./assets/brand-logo.png" alt="MarketOS CYTON logo" width="76" height="76" class="splash-logo" />
         <h1 class="splash-title">Market<span>OS</span></h1>
         <p class="splash-tagline">PLAN • CREATE • GROW</p>
       </div>`;
@@ -499,7 +499,7 @@ function renderAuthScreen(root) {
       <div class="auth-card stack">
         <div class="row-between">
           <div class="brand-row" style="padding:0">
-            <img src="./assets/logo.svg" alt="MarketOS logo" />
+            <img src="./assets/brand-logo.png" alt="MarketOS CYTON logo" />
             <div>
               <div class="brand-name">Market<span>OS</span></div>
               <div class="brand-sub">Plan • Create • Grow</div>
@@ -873,9 +873,14 @@ function renderOnboardingScreen(root, isModal = false) {
 
   const formHtml = `
     <div class="hero-banner">
-      <div class="badge violet">International Onboarding</div>
-      <h2 style="margin-top:0.5rem;">${isModal ? "Add New Business Workspace" : "Welcome to MarketOS"}</h2>
-      <p class="muted" style="margin:0.35rem 0 0;">Configure your country, adapted location fields, currency, and brand voice so AI campaigns match your market.</p>
+      <div class="row-gap" style="align-items:center;">
+        <img src="./assets/brand-logo.png" alt="MarketOS CYTON logo" width="44" height="44" style="border-radius:10px;border:1px solid var(--border-hi);object-fit:cover;" />
+        <div>
+          <div class="badge violet">International Onboarding</div>
+          <h2 style="margin-top:0.35rem;">${isModal ? "Add New Business Workspace" : "Welcome to MarketOS"}</h2>
+        </div>
+      </div>
+      <p class="muted" style="margin:0.45rem 0 0;">Configure your country, adapted location fields, currency, and brand voice so AI campaigns match your market.</p>
     </div>
 
     <div class="card stack">
@@ -1143,7 +1148,7 @@ function renderAppShell(root) {
       <div class="mobile-backdrop ${appState.sidebarOpen ? "open" : ""}" id="mobile-backdrop"></div>
       <aside class="sidebar ${appState.sidebarOpen ? "open" : ""}">
         <div class="brand-row">
-          <img src="./assets/logo.svg" alt="MarketOS" />
+          <img src="./assets/brand-logo.png" alt="CYTON by MarketOS logo" />
           <div>
             <div class="brand-name">CYTON <span>AI</span></div>
             <div class="brand-sub">by MarketOS</div>

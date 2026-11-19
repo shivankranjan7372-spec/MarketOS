@@ -5,7 +5,7 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/((?!assets/|js/|styles\\.css$|robots\\.txt$|sitemap\\.xml$).*)",
+      "source": "/((?!assets/|js/|styles\\.css$|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).*)",
       "destination": "/index.html"
     }
   ],

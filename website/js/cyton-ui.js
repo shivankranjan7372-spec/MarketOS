@@ -341,6 +341,7 @@ export function renderCytonCommandCentre(container, { appState, store, biz, toas
         <header class="cyton-centre-bar">
           <div class="row-gap">
             ${!cytonUiState.leftOpen ? `<button id="cy-open-left" type="button" class="btn btn-outline btn-sm">History</button>` : ""}
+            <img src="./assets/brand-logo.png" alt="Cyton logo" class="cy-bar-logo" />
             <div>
               <div class="row-gap">
                 <strong style="font-family:var(--font-display);letter-spacing:0.04em;">CYTON COMMAND CENTRE</strong>
@@ -572,7 +573,7 @@ function renderCentreSubView({
         <div class="orb-ring ring-1"></div>
         <div class="orb-ring ring-2"></div>
         <div class="orb-nucleus">
-          <span>CYTON</span>
+          <img src="./assets/brand-logo.png" alt="CYTON" class="cy-orb-logo" />
         </div>
       </div>
       <div class="cyton-core-copy">
