@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
     <linearGradient id="arrowGrad" x1="12" y1="48" x2="50" y2="16" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#6D28D9"/>
-      <stop offset="100%" stop-color="#A855F7"/>
+      <stop offset="0%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#00E5FF"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="16" fill="#09090F"/>
-  <rect x="1" y="1" width="62" height="62" rx="15" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
-  <path d="M13 46L25 22L34 32L43 22V46H36V35L28 43L21 36L16 46H13Z" fill="#F8FAFC"/>
+  <rect width="64" height="64" rx="14" fill="#070B12"/>
+  <rect x="1" y="1" width="62" height="62" rx="13" stroke="rgba(148,163,184,0.24)" stroke-width="1.5"/>
+  <path d="M13 46L25 22L34 32L43 22V46H36V35L28 43L21 36L16 46H13Z" fill="#F1F5F9"/>
   <path d="M12 49C22 45 33 36 42 23L37 21L49 17L47 29L43 26C34 39 23 47 12 49Z" fill="url(#arrowGrad)"/>
-  <path d="M51 11L52.2 14.3L55.5 15.5L52.2 16.7L51 20L49.8 16.7L46.5 15.5L49.8 14.3L51 11Z" fill="#F8FAFC"/>
+  <circle cx="52" cy="14" r="2.4" fill="#00E5FF"/>
 </svg>
