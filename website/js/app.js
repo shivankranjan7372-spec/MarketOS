@@ -25,11 +25,14 @@ import {
   savePreferences
 } from "./storage.js";
 import { renderCytonCommandCentre } from "./cyton-ui.js";
+import { renderLuxuryLandingPage } from "./landing.js";
 
 const store = new MarketOsWebStore();
 
 const appState = {
-  screen: "splash", // splash | auth | onboarding | app
+  screen: "splash", // splash | landing | auth | onboarding | app
+  manualLandingPreview: false,
+  landingScrollTarget: "",
   sessionMode: "none", // firebase | local | none
   user: null,
   profile: null,
@@ -187,6 +190,28 @@ function initOnboardingDraft() {
   };
 }
 
+function resolveInitialPublicRoute() {
+  if (typeof window === "undefined") return { screen: "landing", authTab: "signin", section: "" };
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.toLowerCase();
+  if (path === "/login" || path === "/signin" || hash === "#signin" || hash === "#login") {
+    return { screen: "auth", authTab: "signin", section: "" };
+  }
+  if (path === "/signup" || path === "/register" || hash === "#signup") {
+    return { screen: "auth", authTab: "signup", section: "" };
+  }
+  const sectionMap = {
+    "/platform": "platform",
+    "/solutions": "solutions",
+    "/pricing": "pricing",
+    "/about": "about",
+    "/cyton": "cyton"
+  };
+  const hashSection = hash ? hash.replace(/^#/, "") : "";
+  const section = sectionMap[path] || (["platform", "solutions", "pricing", "about", "cyton", "intelligence", "automation"].includes(hashSection) ? hashSection : "");
+  return { screen: "landing", authTab: "signin", section };
+}
+
 // ---------------- Bootstrap ----------------
 async function bootstrap() {
   applyTheme(appState.theme);
@@ -195,19 +220,26 @@ async function bootstrap() {
     if (appState.screen === "app") render();
   });
 
+  const initialRoute = resolveInitialPublicRoute();
   const session = await store.getCurrentSession();
   setTimeout(async () => {
     if (session.user) {
       await startUserSession(session);
-    } else {
+    } else if (initialRoute.screen === "auth") {
+      authUiState.tab = initialRoute.authTab;
       appState.screen = "auth";
       render();
+    } else {
+      appState.landingScrollTarget = initialRoute.section || "";
+      appState.screen = "landing";
+      render();
     }
-  }, 650);
+  }, 500);
 }
 
 async function startUserSession(session) {
   resetAuthUiState();
+  appState.manualLandingPreview = false;
   appState.sessionMode = session.mode;
   appState.user = session.user;
   try {
@@ -232,11 +264,13 @@ async function startUserSession(session) {
       appState.cytonApprovals = snapshot.cytonApprovals || [];
       appState.cytonLogs = snapshot.cytonLogs || [];
       appState.cytonUsage = snapshot.cytonUsage || [];
-      if (appState.businesses.length === 0) {
-        if (!appState.onboarding) initOnboardingDraft();
-        appState.screen = "onboarding";
-      } else {
-        appState.screen = "app";
+      if (!appState.manualLandingPreview) {
+        if (appState.businesses.length === 0) {
+          if (!appState.onboarding) initOnboardingDraft();
+          appState.screen = "onboarding";
+        } else {
+          appState.screen = "app";
+        }
       }
       render();
     },
@@ -388,6 +422,48 @@ function render() {
     return;
   }
 
+  if (appState.screen === "landing") {
+    renderLuxuryLandingPage(root, {
+      isAuthenticated: Boolean(appState.user),
+      onOpenAuth: (tab = "signin") => {
+        appState.manualLandingPreview = false;
+        authUiState.tab = tab === "signup" ? "signup" : "signin";
+        authUiState.error = "";
+        authUiState.success = "";
+        appState.screen = "auth";
+        window.scrollTo({ top: 0, behavior: "instant" });
+        render();
+      },
+      onOpenDashboard: (section = "overview") => {
+        appState.manualLandingPreview = false;
+        if (appState.businesses.length === 0) {
+          if (!appState.onboarding) initOnboardingDraft();
+          appState.screen = "onboarding";
+        } else {
+          appState.activeSection = section || "overview";
+          appState.screen = "app";
+        }
+        window.scrollTo({ top: 0, behavior: "instant" });
+        render();
+      },
+      onExploreSection: (section = "settings") => {
+        appState.manualLandingPreview = false;
+        appState.activeSection = section;
+        appState.screen = appState.businesses.length === 0 ? "onboarding" : "app";
+        window.scrollTo({ top: 0, behavior: "instant" });
+        render();
+      }
+    });
+    if (appState.landingScrollTarget) {
+      const targetId = appState.landingScrollTarget;
+      appState.landingScrollTarget = "";
+      requestAnimationFrame(() => {
+        document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+    return;
+  }
+
   if (appState.screen === "auth") {
     renderAuthScreen(root);
     return;
@@ -532,11 +608,14 @@ function renderAuthScreen(root) {
               <div class="brand-sub">AI Business Operating System</div>
             </div>
           </div>
-          <select id="auth-theme-select" class="theme-select" aria-label="Color theme">
-            <option value="system" ${appState.theme === "system" ? "selected" : ""}>System</option>
-            <option value="dark" ${appState.theme === "dark" ? "selected" : ""}>Dark</option>
-            <option value="light" ${appState.theme === "light" ? "selected" : ""}>Light</option>
-          </select>
+          <div class="row" style="gap:0.5rem;">
+            <button id="btn-auth-back-home" type="button" class="btn btn-ghost btn-sm" title="Back to MarketOS Homepage">← Home</button>
+            <select id="auth-theme-select" class="theme-select" aria-label="Color theme">
+              <option value="system" ${appState.theme === "system" ? "selected" : ""}>System</option>
+              <option value="dark" ${appState.theme === "dark" ? "selected" : ""}>Dark</option>
+              <option value="light" ${appState.theme === "light" ? "selected" : ""}>Light</option>
+            </select>
+          </div>
         </div>
 
         <div>
@@ -686,6 +765,11 @@ function renderAuthScreen(root) {
   if (isSignup || isReset) {
     updatePasswordIndicatorsInPlace();
   }
+
+  document.getElementById("btn-auth-back-home")?.addEventListener("click", () => {
+    appState.screen = "landing";
+    render();
+  });
 
   document.getElementById("auth-theme-select")?.addEventListener("change", (e) => {
     applyTheme(e.target.value);
@@ -1242,6 +1326,9 @@ function renderAppShell(root) {
             <button id="btn-topbar-add-biz" class="btn btn-outline btn-sm" type="button">+ Business</button>
           </div>
           <div class="topbar-right">
+            <button id="btn-topbar-home" class="btn btn-ghost btn-sm" type="button" title="View MarketOS Homepage">
+              Homepage
+            </button>
             <button id="btn-topbar-cyton" class="btn ${appState.activeSection === "cyton" ? "btn-primary" : "btn-outline"} btn-sm" type="button">
               ✦ CYTON Assistant
             </button>
@@ -1281,6 +1368,13 @@ function renderAppShell(root) {
       appState.aiError = "";
       render();
     });
+  });
+  document.getElementById("btn-topbar-home")?.addEventListener("click", () => {
+    appState.manualLandingPreview = true;
+    appState.screen = "landing";
+    appState.sidebarOpen = false;
+    window.scrollTo({ top: 0, behavior: "instant" });
+    render();
   });
   document.getElementById("btn-topbar-cyton")?.addEventListener("click", () => {
     appState.activeSection = "cyton";
@@ -2820,8 +2914,11 @@ function renderSettings(container, biz) {
   });
   document.getElementById("set-signout")?.addEventListener("click", async () => {
     await store.signOut();
-    appState.screen = "auth";
+    appState.manualLandingPreview = false;
+    appState.user = null;
+    appState.screen = "landing";
     appState.businesses = [];
+    window.scrollTo({ top: 0, behavior: "instant" });
     render();
   });
 }

@@ -271,3 +271,57 @@ test("website/js/catalog.js preserves all MarketOS sections and adds complete Cy
   assert.equal(CYTON_MARKETPLACE_INTEGRATIONS.length >= 10, true);
   assert.equal(Boolean(CYTON_SUBSCRIPTION_PLANS.FREE && CYTON_SUBSCRIPTION_PLANS.PRO && CYTON_SUBSCRIPTION_PLANS.BUSINESS), true);
 });
+
+import fs from "node:fs";
+import path from "node:path";
+import { renderLuxuryLandingPage } from "../website/js/landing.js";
+
+test("MarketOS cinematic luxury landing page preserves assets, copy, and zero fake stats", () => {
+  assert.equal(fs.existsSync(path.resolve("website/assets/hero-yacht.jpg")), true);
+  assert.equal(fs.existsSync(path.resolve("website/assets/marketos-wordmark.png")), true);
+
+  const prevDoc = globalThis.document;
+  const prevWin = globalThis.window;
+  globalThis.document = {
+    getElementById: () => ({ addEventListener: () => {}, classList: { toggle() {}, remove() {} } })
+  };
+  globalThis.window = {
+    scrollY: 0,
+    addEventListener: () => {},
+    removeEventListener: () => {}
+  };
+
+  try {
+    const mockRoot = {
+      innerHTML: "",
+      querySelectorAll() {
+        return [];
+      }
+    };
+    renderLuxuryLandingPage(mockRoot, {
+      isAuthenticated: false,
+      onOpenAuth: () => {},
+      onOpenDashboard: () => {},
+      onExploreSection: () => {}
+    });
+
+    assert.match(mockRoot.innerHTML, /THE FUTURE OF BUSINESS/);
+    assert.match(mockRoot.innerHTML, /Think Beyond Limits\./);
+    assert.match(mockRoot.innerHTML, /Build Beyond Expectations\./);
+    assert.match(mockRoot.innerHTML, /One intelligent ecosystem\. Endless possibilities\./);
+    assert.match(mockRoot.innerHTML, /Explore MarketOS/);
+    assert.match(mockRoot.innerHTML, /Get Started/);
+    assert.match(mockRoot.innerHTML, /SCROLL TO EXPLORE/);
+    assert.match(mockRoot.innerHTML, /assets\/hero-yacht\.jpg/);
+    assert.match(mockRoot.innerHTML, /assets\/marketos-wordmark\.png/);
+    for (const id of ["platform", "cyton", "solutions", "intelligence", "automation", "pricing", "about"]) {
+      assert.equal(mockRoot.innerHTML.includes(`id="${id}"`), true, `Missing landing section #${id}`);
+    }
+  } finally {
+    if (prevDoc === undefined) delete globalThis.document;
+    else globalThis.document = prevDoc;
+    if (prevWin === undefined) delete globalThis.window;
+    else globalThis.window = prevWin;
+  }
+});
+
