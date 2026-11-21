@@ -1,9 +1,9 @@
 const TRUST_PILLARS = [
   {
     code: "01",
-    title: "Transparent Usage Pricing",
+    title: "Transparent Subscription Pricing",
     detail:
-      "Every tier limit, model rate estimate, and canonical USD vs. display-currency conversion is visible before you execute—zero hidden markups or fabricated savings."
+      "Clear monthly and annual workspace quota plans with canonical USD billing and instant display currency conversion across USD, INR, EUR, GBP, and AED."
   },
   {
     code: "02",

@@ -15,7 +15,7 @@ import {
   CYTON_MARKETPLACE_INTEGRATIONS,
   CYTON_MODEL_PROVIDERS,
   CYTON_SUBSCRIPTION_PLANS,
-  MARKETPLACE_GENERATION_TYPES
+  SUBSCRIPTION_TIERS
 } from "../website/js/catalog.js";
 
 function createMockRes() {
@@ -334,10 +334,10 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
 
     assert.match(mockRoot.innerHTML, /Every AI\./);
     assert.match(mockRoot.innerHTML, /One Marketplace\./);
-    assert.match(mockRoot.innerHTML, /Pay for Intelligence\./);
-    assert.match(mockRoot.innerHTML, /Not Idle Subscriptions\./);
+    assert.match(mockRoot.innerHTML, /Discover the right AI for every workflow\./);
+    assert.match(mockRoot.innerHTML, /Compare AI capabilities\./);
     assert.match(mockRoot.innerHTML, /Different models\. One destination\./);
-    assert.match(mockRoot.innerHTML, /Transparent pricing in your local currency\./);
+    assert.match(mockRoot.innerHTML, /Simple workspace plans in your currency\./);
     assert.match(mockRoot.innerHTML, /Built for clarity, governance, and control\./);
     assert.match(mockRoot.innerHTML, /Plan\. Create\. Grow\./);
     assert.match(mockRoot.innerHTML, /Privacy Policy/);
@@ -347,12 +347,19 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
     assert.match(mockRoot.innerHTML, /assets\/marketos-wordmark\.png/);
     assert.equal(mockRoot.innerHTML.includes("mos-3d-stage"), true);
     assert.equal(mockRoot.innerHTML.includes("mos-cmd-perspective-stage"), true);
-    assert.equal(mockRoot.innerHTML.includes("mos-pricing-calculator"), true);
+    assert.equal(mockRoot.innerHTML.includes("mos-billing-monthly"), true);
+    assert.equal(mockRoot.innerHTML.includes("mos-billing-annual"), true);
+
+    // Ensure removed calculators, estimators, and interactive usage demos do not appear
+    assert.equal(mockRoot.innerHTML.includes("mos-pricing-calculator"), false);
+    assert.equal(mockRoot.innerHTML.includes("mos-payg-run-preview"), false);
+    assert.equal(mockRoot.innerHTML.includes("mos-calc-provider"), false);
+    assert.equal(mockRoot.innerHTML.includes("Est. per generation"), false);
 
     for (const id of [
       "scene-intro",
       "scene-marketplace",
-      "scene-payg",
+      "scene-compare",
       "scene-command",
       "scene-pricing",
       "scene-trust",
@@ -375,23 +382,27 @@ import {
   setSelectedCurrency,
   getCurrencyState,
   formatIndicativeAmount,
-  calculateEstimatedUsageCost
+  formatSubscriptionTierPrice
 } from "../website/js/currency.js";
 
-test("Centralized currency selector converts USD, INR, EUR, GBP, AED and calculator computes accurate canonical totals", () => {
+test("Centralized currency selector formats subscription plans across USD, INR, EUR, GBP, AED and Monthly/Annual without mutating canonical USD", () => {
   assert.deepEqual(
     SUPPORTED_LANDING_CURRENCIES.map((c) => c.code),
     ["USD", "INR", "EUR", "GBP", "AED"]
   );
 
+  const starter = SUBSCRIPTION_TIERS.STARTER;
   setSelectedCurrency("USD");
   assert.equal(getCurrencyState().code, "USD");
-  const usdCalc = calculateEstimatedUsageCost({
-    provider: CYTON_MODEL_PROVIDERS[0],
-    generationType: MARKETPLACE_GENERATION_TYPES[0],
-    quantity: 100
-  });
-  assert.equal(usdCalc.canonicalTotalUsd, "$0.20");
+  const usdMonthly = formatSubscriptionTierPrice(starter, "monthly");
+  assert.equal(usdMonthly.canonicalUsd, 9);
+  assert.equal(usdMonthly.canonicalFormatted, "$9.00");
+  assert.equal(usdMonthly.periodSuffix, "/ month");
+
+  const usdAnnual = formatSubscriptionTierPrice(starter, "annual");
+  assert.equal(usdAnnual.canonicalUsd, 108);
+  assert.equal(usdAnnual.canonicalFormatted, "$108.00");
+  assert.equal(usdAnnual.periodSuffix, "/ year");
 
   setSelectedCurrency("INR");
   assert.equal(getCurrencyState().code, "INR");
@@ -399,13 +410,13 @@ test("Centralized currency selector converts USD, INR, EUR, GBP, AED and calcula
   assert.match(inrDisplay, /₹/);
 
   // Changing display currency must NEVER alter canonical USD amounts
-  const inrCalc = calculateEstimatedUsageCost({
-    provider: CYTON_MODEL_PROVIDERS[0],
-    generationType: MARKETPLACE_GENERATION_TYPES[0],
-    quantity: 100
-  });
-  assert.equal(inrCalc.canonicalTotalUsd, "$0.20");
-  assert.match(inrCalc.totalFormatted, /₹/);
+  const inrMonthly = formatSubscriptionTierPrice(starter, "monthly");
+  assert.equal(inrMonthly.canonicalFormatted, "$9.00");
+  assert.match(inrMonthly.displayFormatted, /₹/);
+
+  const inrAnnual = formatSubscriptionTierPrice(starter, "annual");
+  assert.equal(inrAnnual.canonicalFormatted, "$108.00");
+  assert.match(inrAnnual.displayFormatted, /₹/);
 
   setSelectedCurrency("AED");
   assert.equal(getCurrencyState().code, "AED");

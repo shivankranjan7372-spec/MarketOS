@@ -1,10 +1,4 @@
-import { CYTON_MODEL_PROVIDERS, MARKETPLACE_GENERATION_TYPES } from "../catalog.js";
-import {
-  formatCanonicalUsd,
-  formatIndicativeAmount,
-  getCurrencyState,
-  subscribeCurrency
-} from "../currency.js";
+import { CYTON_MODEL_PROVIDERS } from "../catalog.js";
 
 const DISCOVERY_FILTERS = [
   "All Providers",
@@ -14,6 +8,15 @@ const DISCOVERY_FILTERS = [
   "Self-Hosted / BYOK"
 ];
 
+function esc(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function providerMatchesFilter(provider, filterName) {
   if (filterName === "All Providers") return true;
   if (filterName === "Vision & Multimodal") return Boolean(provider.supportsVision);
@@ -22,17 +25,14 @@ function providerMatchesFilter(provider, filterName) {
 }
 
 export function renderMarketplaceShowcaseHtml(isAuthenticated = false) {
-  const { code } = getCurrencyState();
-  const baseGen = MARKETPLACE_GENERATION_TYPES[0];
-
   return `
     <section class="mos-scene mos-scene-marketplace" id="scene-marketplace" data-scene-index="1">
       <div class="mos-container">
         <div class="mos-section-head mos-center-head" data-mos-reveal>
           <span class="mos-kicker">01 &bull; AI MARKETPLACE &amp; MODEL DISCOVERY</span>
-          <h2>Find the right AI for every idea.<br /><span class="mos-accent-span">Compare intelligence, capabilities and cost.</span></h2>
+          <h2>Discover the right AI for every workflow.<br /><span class="mos-accent-span">Explore unified intelligence across top providers.</span></h2>
           <p class="mos-lead">
-            Inspect configured MarketOS providers, compare multimodal support and indicative per-generation pricing, and launch models inside a single governed workspace.
+            Inspect configured MarketOS AI providers, filter by capability and multimodal support, and launch models directly inside a governed workspace.
           </p>
         </div>
 
@@ -44,61 +44,58 @@ export function renderMarketplaceShowcaseHtml(isAuthenticated = false) {
                 role="tab"
                 aria-selected="${idx === 0}"
                 class="mos-filter-pill ${idx === 0 ? "active" : ""}"
-                data-provider-filter="${f}"
+                data-provider-filter="${esc(f)}"
               >
-                ${f}
+                ${esc(f)}
               </button>`
           ).join("")}
         </div>
 
         <div class="mos-model-grid" id="mos-model-grid" data-mos-reveal data-mos-reveal-delay="0.12">
-          ${renderProviderCardsHtml(CYTON_MODEL_PROVIDERS, code, baseGen, isAuthenticated)}
+          ${renderProviderCardsHtml(CYTON_MODEL_PROVIDERS, isAuthenticated)}
         </div>
 
         <div class="mos-marketplace-footnote" data-mos-reveal data-mos-reveal-delay="0.16">
-          <span>All provider listings reflect active gateways configured in <span class="mono">CYTON_MODEL_PROVIDERS</span>. Prices shown in <strong data-curr-code-label>${code}</strong> are indicative estimates converted from canonical USD.</span>
+          <span>All provider listings reflect active gateways configured in <span class="mono">CYTON_MODEL_PROVIDERS</span> inside MarketOS.</span>
         </div>
       </div>
     </section>
   `;
 }
 
-function renderProviderCardsHtml(providers, currencyCode, baseGen, isAuthenticated) {
+function renderProviderCardsHtml(providers, isAuthenticated) {
   return providers
     .map((prov) => {
-      const estFormatted = formatIndicativeAmount(prov.indicativeUsdPerGen * baseGen.multiplier, currencyCode);
-      const usdRef = formatCanonicalUsd(prov.indicativeUsdPerGen * baseGen.multiplier);
+      const capabilitiesText = (prov.capabilities || []).join(" • ");
       return `
-        <article class="mos-glass-card mos-model-card" data-provider-id="${prov.id}" data-depth-card>
+        <article class="mos-glass-card mos-model-card" data-provider-id="${esc(prov.id)}" data-depth-card>
           <div class="mos-model-card-top">
             <div>
-              <span class="mos-data-label">${prov.latencyProfile}</span>
-              <h3>${prov.name}</h3>
+              <span class="mos-data-label">${esc(prov.latencyProfile)}</span>
+              <h3>${esc(prov.name)}</h3>
             </div>
             <span class="mos-pill-tag">${prov.supportsVision ? "Vision + Text" : "Text / Code"}</span>
           </div>
 
-          <p class="mos-data-copy">${prov.note}</p>
+          <p class="mos-data-copy">${esc(prov.note)}</p>
 
           <div class="mos-model-chips">
-            ${prov.models.map((m) => `<span class="mos-model-id">${m}</span>`).join("")}
+            ${prov.models.map((m) => `<span class="mos-model-id">${esc(m)}</span>`).join("")}
           </div>
 
           <div class="mos-model-metrics">
             <div>
-              <span>Est. per generation</span>
-              <strong data-provider-price="${prov.id}">${estFormatted}</strong>
-              <small class="mos-usd-trace">Ref: ${usdRef} USD</small>
+              <span>Default Model</span>
+              <strong>${esc(prov.defaultModel)}</strong>
             </div>
             <div>
-              <span>Per 1K tokens est.</span>
-              <strong data-provider-token-price="${prov.id}">${formatIndicativeAmount(prov.indicativeUsdPer1kTokens, currencyCode)}</strong>
-              <small class="mos-usd-trace">${prov.defaultModel}</small>
+              <span>Capabilities</span>
+              <strong>${esc(capabilitiesText)}</strong>
             </div>
           </div>
 
           <div class="mos-model-card-foot">
-            <button type="button" class="mos-btn mos-btn-outline mos-btn-sm" data-launch-provider="${prov.id}">
+            <button type="button" class="mos-btn mos-btn-outline mos-btn-sm" data-launch-provider="${esc(prov.id)}">
               ${isAuthenticated ? "Use in CYTON" : "Access Provider"}
             </button>
           </div>
@@ -112,17 +109,6 @@ export function bindMarketplaceShowcaseEvents(root, { isAuthenticated, onOpenAut
   let activeFilter = DISCOVERY_FILTERS[0];
   const gridEl = document.getElementById("mos-model-grid");
 
-  const redraw = () => {
-    if (!gridEl) return;
-    const { code } = getCurrencyState();
-    const filtered = CYTON_MODEL_PROVIDERS.filter((p) => providerMatchesFilter(p, activeFilter));
-    gridEl.innerHTML = renderProviderCardsHtml(filtered, code, MARKETPLACE_GENERATION_TYPES[0], isAuthenticated);
-    document.querySelectorAll("[data-curr-code-label]").forEach((el) => {
-      el.textContent = code;
-    });
-    bindLaunchButtons();
-  };
-
   const bindLaunchButtons = () => {
     gridEl?.querySelectorAll("[data-launch-provider]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -130,6 +116,13 @@ export function bindMarketplaceShowcaseEvents(root, { isAuthenticated, onOpenAut
         else onOpenAuth("signup");
       });
     });
+  };
+
+  const redraw = () => {
+    if (!gridEl) return;
+    const filtered = CYTON_MODEL_PROVIDERS.filter((p) => providerMatchesFilter(p, activeFilter));
+    gridEl.innerHTML = renderProviderCardsHtml(filtered, isAuthenticated);
+    bindLaunchButtons();
   };
 
   root.querySelectorAll("[data-provider-filter]").forEach((btn) => {
@@ -145,7 +138,6 @@ export function bindMarketplaceShowcaseEvents(root, { isAuthenticated, onOpenAut
   });
 
   bindLaunchButtons();
-  const unsub = subscribeCurrency(redraw);
 
-  return { cleanup: unsub };
+  return { cleanup: () => {} };
 }

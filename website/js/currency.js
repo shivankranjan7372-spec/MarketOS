@@ -146,24 +146,20 @@ export function formatCanonicalUsd(usdAmount) {
 }
 
 /**
- * Computes transparent estimated usage cost strictly from canonical USD provider rates
- * and configured generation multiplier.
+ * Formats subscription plan pricing in the selected display currency for monthly or annual billing
+ * without altering canonical USD checkout/billing figures.
  */
-export function calculateEstimatedUsageCost({ provider, generationType, quantity = 1 }) {
-  const qty = Math.max(1, Math.min(100000, Number(quantity) || 1));
-  const unitUsdBase = Number(provider?.indicativeUsdPerGen) || 0.002;
-  const multiplier = Number(generationType?.multiplier) || 1.0;
-  const unitUsd = unitUsdBase * multiplier;
-  const totalUsd = unitUsd * qty;
-
+export function formatSubscriptionTierPrice(tier, billingPeriod = "monthly", targetCurrency = currencyState.code) {
+  const isAnnual = billingPeriod === "annual";
+  const monthlyUsd = Number(tier?.usdMonthlyEstimate) || 0;
+  const canonicalUsd = isAnnual ? monthlyUsd * 12 : monthlyUsd;
   return {
-    quantity: qty,
-    unitUsd,
-    totalUsd,
-    unitFormatted: formatIndicativeAmount(unitUsd),
-    totalFormatted: formatIndicativeAmount(totalUsd),
-    canonicalTotalUsd: formatCanonicalUsd(totalUsd),
-    canonicalUnitUsd: formatCanonicalUsd(unitUsd)
+    billingPeriod: isAnnual ? "annual" : "monthly",
+    canonicalUsd,
+    displayFormatted: formatIndicativeAmount(canonicalUsd, targetCurrency),
+    canonicalFormatted: formatCanonicalUsd(canonicalUsd),
+    monthlyCanonicalFormatted: formatCanonicalUsd(monthlyUsd),
+    periodSuffix: isAnnual ? "/ year" : "/ month"
   };
 }
 

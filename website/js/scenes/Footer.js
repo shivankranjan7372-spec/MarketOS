@@ -12,7 +12,7 @@ export function renderFooterSectionHtml(isAuthenticated = false) {
         <span class="mos-kicker">UNIFIED AI MARKETPLACE &amp; WORKSPACE</span>
         <h2 class="mos-final-title">Plan. Create. Grow.</h2>
         <p class="mos-lead mos-final-lead">
-          Discover models, compare real costs, and run every AI workflow from one MarketOS workspace.
+          Discover models, compare capabilities, and run every AI workflow from one MarketOS workspace.
         </p>
 
         <div class="mos-hero-ctas">
@@ -45,9 +45,9 @@ export function renderFooterSectionHtml(isAuthenticated = false) {
           <h4>Product</h4>
           <a href="#scene-intro" data-mos-scroll="scene-intro">Explore</a>
           <a href="#scene-marketplace" data-mos-scroll="scene-marketplace">Models Marketplace</a>
-          <a href="#scene-payg" data-mos-scroll="scene-payg">Pay-As-You-Go</a>
-          <a href="#scene-command" data-mos-scroll="scene-command">Features &amp; Capabilities</a>
-          <a href="#scene-pricing" data-mos-scroll="scene-pricing">Pricing &amp; Calculator</a>
+          <a href="#scene-compare" data-mos-scroll="scene-compare">Model Comparison</a>
+          <a href="#scene-command" data-mos-scroll="scene-command">Features &amp; Workspace</a>
+          <a href="#scene-pricing" data-mos-scroll="scene-pricing">Subscription Pricing</a>
         </div>
 
         <div class="mos-footer-col">

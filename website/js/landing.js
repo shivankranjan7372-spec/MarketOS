@@ -2,7 +2,7 @@ import { hydrateLandingExchangeRates } from "./currency.js";
 import { renderNavigation, renderScrollProgress, bindNavigationEvents } from "./scenes/Navigation.js";
 import { renderMarketOSLogoSceneHtml } from "./scenes/MarketOSLogoScene.js";
 import { renderMarketplaceShowcaseHtml, bindMarketplaceShowcaseEvents } from "./scenes/MarketplaceShowcaseScene.js";
-import { renderPayAsYouGoSceneHtml, bindPayAsYouGoEvents } from "./scenes/PayAsYouGoScene.js";
+import { renderModelComparisonSceneHtml, bindModelComparisonEvents } from "./scenes/ModelComparisonScene.js";
 import { renderCommandCenterSceneHtml, bindCommandCenterEvents } from "./scenes/CommandCenterScene.js";
 import { renderPricingSectionHtml, bindPricingEvents } from "./scenes/PricingSection.js";
 import { renderTrustSectionHtml } from "./scenes/TrustSection.js";
@@ -46,7 +46,7 @@ export function renderLandingPage(
       <main class="mos-story-main">
         ${renderMarketOSLogoSceneHtml(isAuthenticated)}
         ${renderMarketplaceShowcaseHtml(isAuthenticated)}
-        ${renderPayAsYouGoSceneHtml()}
+        ${renderModelComparisonSceneHtml()}
         ${renderCommandCenterSceneHtml(isAuthenticated)}
         ${renderPricingSectionHtml({ isAuthenticated, activeTierId, billingStatusText })}
         ${renderTrustSectionHtml()}
@@ -66,7 +66,7 @@ export function renderLandingPage(
 
   bindNavigationEvents(root, { isAuthenticated, onOpenAuth, onOpenDashboard, scrollToSection });
   const marketCtrl = bindMarketplaceShowcaseEvents(root, { isAuthenticated, onOpenAuth, onOpenDashboard });
-  const paygCtrl = bindPayAsYouGoEvents(root);
+  const compareCtrl = bindModelComparisonEvents(root);
   bindCommandCenterEvents(root, { isAuthenticated, onOpenAuth, onOpenDashboard });
   const pricingCtrl = bindPricingEvents(root, {
     isAuthenticated,
@@ -90,12 +90,7 @@ export function renderLandingPage(
   const unmountReveals = mountRevealAnimations(root, { pageEl });
   const unmount3d = mountThreeDHeroStage({
     pageEl,
-    canvasHostEl: stageEl,
-    onSceneProgress: (st) => {
-      if (st.activeIndex === 2) {
-        paygCtrl.setStepByScroll(st.localProgress);
-      }
-    }
+    canvasHostEl: stageEl
   });
 
   // Hydrate live Open Exchange Rates without blocking initial paint
@@ -105,7 +100,7 @@ export function renderLandingPage(
     unmountReveals();
     unmount3d();
     marketCtrl.cleanup();
-    paygCtrl.cleanup();
+    compareCtrl.cleanup();
     pricingCtrl.cleanup();
   };
 

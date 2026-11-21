@@ -40,7 +40,7 @@ export function renderMarketOSLogoSceneHtml(isAuthenticated = false) {
         </h1>
 
         <p class="mos-hero-sub" data-mos-reveal data-mos-reveal-delay="0.12">
-          Discover, compare and use powerful AI models and tools through one intelligent platform. Pay for what you use. Stay in control.
+          Discover, compare and access powerful AI models and tools through one intelligent platform. Built for speed, governance, and full workspace control.
         </p>
 
         <div class="mos-hero-ctas" data-mos-reveal data-mos-reveal-delay="0.18">

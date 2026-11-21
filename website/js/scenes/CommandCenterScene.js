@@ -22,19 +22,19 @@ const WORKSPACE_CAPABILITIES = [
     ]
   },
   {
-    id: "transparent_pricing",
-    kicker: "D • TRANSPARENT USAGE PRICING",
-    navTarget: "analytics",
-    badge: "USD Canonical",
-    tabLabel: "Transparent Pricing",
-    headline: "Know what you pay before you generate.",
-    subtitle: "Pre-execution estimates & Actual vs. Estimate ledger",
+    id: "platform_features",
+    kicker: "D • PLATFORM FEATURES & STUDIOS",
+    navTarget: "campaign_planner",
+    badge: "Multi-Studio",
+    tabLabel: "Platform Features",
+    headline: "Built for complete marketing execution.",
+    subtitle: "Campaigns, Social, Email, Brand, Ads & Calendar",
     summary:
-      "Every generation displays estimated token impact, canonical USD pricing trace, and indicative display currency conversion while isolating real verified metrics from projections.",
+      "Plan multi-channel launches, draft social and email sequences, inspect brand guidelines, schedule content calendars, and track verified Actual vs. Estimate campaign performance.",
     rows: [
-      { label: "Canonical Ledger", value: "USD reference billing preserved independently" },
-      { label: "Live FX Adapter", value: "Open Exchange Rates API with configured fallback" },
-      { label: "Data Separation", value: "Verified Actual Data isolated from Estimate previews" }
+      { label: "Creative Studios", value: "Campaigns, Social, Email, Brand & Ads Studios" },
+      { label: "Content Calendar", value: "Timezone-aware scheduling & draft pipeline" },
+      { label: "Data Separation", value: "Verified Actual Metrics isolated from projections" }
     ]
   },
   {

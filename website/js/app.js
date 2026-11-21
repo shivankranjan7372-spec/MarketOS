@@ -211,8 +211,7 @@ function resolveInitialPublicRoute() {
     "/explore": "scene-intro",
     "/models": "scene-marketplace",
     "/marketplace": "scene-marketplace",
-    "/compare": "scene-payg",
-    "/payg": "scene-payg",
+    "/compare": "scene-compare",
     "/platform": "scene-command",
     "/solutions": "scene-command",
     "/features": "scene-command",
@@ -225,7 +224,7 @@ function resolveInitialPublicRoute() {
   const validHashIds = [
     "scene-intro",
     "scene-marketplace",
-    "scene-payg",
+    "scene-compare",
     "scene-command",
     "scene-pricing",
     "scene-trust",

@@ -1,7 +1,7 @@
 export const STORYBOARD_SCENES = [
   { id: "scene-intro", label: "Explore", number: "01" },
   { id: "scene-marketplace", label: "Models", number: "02" },
-  { id: "scene-payg", label: "Compare", number: "03" },
+  { id: "scene-compare", label: "Compare", number: "03" },
   { id: "scene-command", label: "Features", number: "04" },
   { id: "scene-pricing", label: "Pricing", number: "05" },
   { id: "scene-trust", label: "Trust", number: "06" },
@@ -25,9 +25,9 @@ export function renderNavigation({ isAuthenticated = false }) {
         <nav class="mos-nav-links" aria-label="Primary site navigation">
           <a href="#scene-intro" class="mos-nav-link" data-mos-scroll="scene-intro">Explore</a>
           <a href="#scene-marketplace" class="mos-nav-link" data-mos-scroll="scene-marketplace">Models</a>
-          <a href="#scene-payg" class="mos-nav-link" data-mos-scroll="scene-payg">Compare</a>
-          <a href="#scene-pricing" class="mos-nav-link" data-mos-scroll="scene-pricing">Pricing</a>
+          <a href="#scene-compare" class="mos-nav-link" data-mos-scroll="scene-compare">Compare</a>
           <a href="#scene-command" class="mos-nav-link" data-mos-scroll="scene-command">Features</a>
+          <a href="#scene-pricing" class="mos-nav-link" data-mos-scroll="scene-pricing">Pricing</a>
         </nav>
 
         <div class="mos-nav-actions">
@@ -54,9 +54,9 @@ export function renderNavigation({ isAuthenticated = false }) {
       <div class="mos-mobile-drawer" id="mos-mobile-drawer">
         <a href="#scene-intro" class="mos-drawer-link" data-mos-scroll="scene-intro">Explore</a>
         <a href="#scene-marketplace" class="mos-drawer-link" data-mos-scroll="scene-marketplace">Models</a>
-        <a href="#scene-payg" class="mos-drawer-link" data-mos-scroll="scene-payg">Compare</a>
-        <a href="#scene-pricing" class="mos-drawer-link" data-mos-scroll="scene-pricing">Pricing</a>
+        <a href="#scene-compare" class="mos-drawer-link" data-mos-scroll="scene-compare">Compare</a>
         <a href="#scene-command" class="mos-drawer-link" data-mos-scroll="scene-command">Features</a>
+        <a href="#scene-pricing" class="mos-drawer-link" data-mos-scroll="scene-pricing">Pricing</a>
         <div class="mos-drawer-actions">
           ${
             isAuthenticated
