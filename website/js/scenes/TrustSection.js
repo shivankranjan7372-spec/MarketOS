@@ -3,7 +3,7 @@ const TRUST_PILLARS = [
     code: "01",
     title: "Transparent Subscription Pricing",
     detail:
-      "Clear monthly and annual workspace quota plans with canonical USD billing and instant display currency conversion across USD, INR, EUR, GBP, and AED."
+      "Clear monthly and annual workspace quota plans with canonical INR billing and instant display currency conversion across INR, USD, EUR, GBP, and AED."
   },
   {
     code: "02",

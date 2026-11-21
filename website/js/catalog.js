@@ -19,26 +19,87 @@ export const SUBSCRIPTION_TIERS = {
   STARTER: {
     id: "STARTER",
     displayName: "Starter",
+    recommended: false,
     monthlyAiLimit: 25,
     maxBusinesses: 1,
-    usdMonthlyEstimate: 9.0,
-    featuresSummary: "25 AI generations/mo, 1 business workspace, basic social & campaign planning"
+    inrMonthly: 299,
+    inrAnnual: 2990,
+    usdMonthlyEstimate: 3.54,
+    featuresSummary: "25 AI generations/mo, 1 business workspace, basic social & campaign planning",
+    platformHighlights: [
+      "25 AI generations per month",
+      "1 business workspace",
+      "CYTON Command Centre access",
+      "Core social & campaign planning"
+    ]
   },
   GROWTH: {
     id: "GROWTH",
     displayName: "Growth",
+    recommended: true,
     monthlyAiLimit: 150,
     maxBusinesses: 3,
-    usdMonthlyEstimate: 29.0,
-    featuresSummary: "150 AI generations/mo, up to 3 workspaces, all 7 marketing modules, calendar & analytics"
+    inrMonthly: 599,
+    inrAnnual: 5990,
+    usdMonthlyEstimate: 7.1,
+    featuresSummary: "150 AI generations/mo, up to 3 workspaces, all 7 marketing modules, calendar & analytics",
+    platformHighlights: [
+      "150 AI generations per month",
+      "Up to 3 business workspaces",
+      "All marketing studios & calendar",
+      "Approval queue & analytics ledger"
+    ]
   },
   BUSINESS: {
     id: "BUSINESS",
     displayName: "Business",
+    recommended: false,
     monthlyAiLimit: 600,
     maxBusinesses: 10,
-    usdMonthlyEstimate: 79.0,
-    featuresSummary: "600 AI generations/mo, up to 10 international workspaces, multi-currency reports & full integrations"
+    inrMonthly: 1499,
+    inrAnnual: 14990,
+    usdMonthlyEstimate: 17.76,
+    featuresSummary: "600 AI generations/mo, up to 10 international workspaces, multi-currency reports & full integrations",
+    platformHighlights: [
+      "600 AI generations per month",
+      "Up to 10 international workspaces",
+      "Multi-currency reporting & insights",
+      "Full workspace governance & approvals"
+    ]
+  },
+  ENTERPRISE: {
+    id: "ENTERPRISE",
+    displayName: "Enterprise",
+    recommended: false,
+    monthlyAiLimit: 2500,
+    maxBusinesses: 25,
+    inrMonthly: 4999,
+    inrAnnual: 49990,
+    usdMonthlyEstimate: 59.23,
+    featuresSummary: "2,500 AI generations/mo, up to 25 business workspaces, organization governance & audit visibility",
+    platformHighlights: [
+      "2,500 AI generations per month",
+      "Up to 25 business workspaces",
+      "Centralized approval governance",
+      "Full MarketOS operating system"
+    ]
+  },
+  AGENCY: {
+    id: "AGENCY",
+    displayName: "Agency",
+    recommended: false,
+    monthlyAiLimit: 6000,
+    maxBusinesses: 50,
+    inrMonthly: 10499,
+    inrAnnual: 104990,
+    usdMonthlyEstimate: 124.4,
+    featuresSummary: "6,000 AI generations/mo, up to 50 client workspaces, centralized brand memory & multi-region operations",
+    platformHighlights: [
+      "6,000 AI generations per month",
+      "Up to 50 client workspaces",
+      "Isolated brand memory per client",
+      "Unified multi-region command control"
+    ]
   }
 };
 

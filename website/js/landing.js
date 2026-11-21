@@ -31,7 +31,8 @@ export function renderLandingPage(
     billingStatusText = "",
     onOpenAuth,
     onOpenDashboard,
-    onExploreSection
+    onExploreSection,
+    onSelectPlanCheckout
   }
 ) {
   cleanupLandingExperience();
@@ -73,7 +74,8 @@ export function renderLandingPage(
     activeTierId,
     billingStatusText,
     onOpenAuth,
-    onExploreSection
+    onExploreSection,
+    onSelectPlanCheckout
   });
   bindFooterEvents(root, { isAuthenticated, onOpenAuth, onOpenDashboard, scrollToSection });
 

@@ -337,7 +337,7 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
     assert.match(mockRoot.innerHTML, /Discover powerful AI capabilities\./);
     assert.match(mockRoot.innerHTML, /One intelligent ecosystem\./);
     assert.match(mockRoot.innerHTML, /Different capabilities\. One destination\./);
-    assert.match(mockRoot.innerHTML, /Simple workspace plans in your currency\./);
+    assert.match(mockRoot.innerHTML, /Simple plans built to scale with you\./);
     assert.match(mockRoot.innerHTML, /Built for clarity, governance, and control\./);
     assert.match(mockRoot.innerHTML, /Plan\. Create\. Grow\./);
     assert.match(mockRoot.innerHTML, /Privacy Policy/);
@@ -349,6 +349,29 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
     assert.equal(mockRoot.innerHTML.includes("mos-cmd-perspective-stage"), true);
     assert.equal(mockRoot.innerHTML.includes("mos-billing-monthly"), true);
     assert.equal(mockRoot.innerHTML.includes("mos-billing-annual"), true);
+
+    // Verify all 5 official subscription plans & Growth recommended highlight
+    for (const planId of ["STARTER", "GROWTH", "BUSINESS", "ENTERPRISE", "AGENCY"]) {
+      assert.equal(
+        mockRoot.innerHTML.includes(`data-tier-card="${planId}"`),
+        true,
+        `Missing plan card ${planId}`
+      );
+    }
+    for (const planLabel of ["Starter", "Growth", "Business", "Enterprise", "Agency", "Recommended"]) {
+      assert.equal(
+        mockRoot.innerHTML.includes(planLabel),
+        true,
+        `Missing pricing copy: ${planLabel}`
+      );
+    }
+    for (const defaultPrice of ["₹299", "₹599", "₹1,499", "₹4,999", "₹10,499"]) {
+      assert.equal(
+        mockRoot.innerHTML.includes(defaultPrice),
+        true,
+        `Missing official INR monthly price ${defaultPrice}`
+      );
+    }
 
     // Ensure removed calculators, estimators, interactive usage demos, and ALL model/provider names do not appear
     const lowerHtml = mockRoot.innerHTML.toLowerCase();
@@ -397,46 +420,81 @@ import {
   SUPPORTED_LANDING_CURRENCIES,
   setSelectedCurrency,
   getCurrencyState,
-  formatIndicativeAmount,
+  formatIndicativeFromInr,
+  formatCanonicalInr,
+  calculateAnnualPlanSavings,
   formatSubscriptionTierPrice
 } from "../website/js/currency.js";
 
-test("Centralized currency selector formats subscription plans across USD, INR, EUR, GBP, AED and Monthly/Annual without mutating canonical USD", () => {
+test("Centralized INR subscription plans & currency selector format across INR, USD, EUR, GBP, AED and Monthly/Annual without mutating canonical INR", () => {
   assert.deepEqual(
     SUPPORTED_LANDING_CURRENCIES.map((c) => c.code),
-    ["USD", "INR", "EUR", "GBP", "AED"]
+    ["INR", "USD", "EUR", "GBP", "AED"]
   );
 
-  const starter = SUBSCRIPTION_TIERS.STARTER;
-  setSelectedCurrency("USD");
-  assert.equal(getCurrencyState().code, "USD");
-  const usdMonthly = formatSubscriptionTierPrice(starter, "monthly");
-  assert.equal(usdMonthly.canonicalUsd, 9);
-  assert.equal(usdMonthly.canonicalFormatted, "$9.00");
-  assert.equal(usdMonthly.periodSuffix, "/ month");
-
-  const usdAnnual = formatSubscriptionTierPrice(starter, "annual");
-  assert.equal(usdAnnual.canonicalUsd, 108);
-  assert.equal(usdAnnual.canonicalFormatted, "$108.00");
-  assert.equal(usdAnnual.periodSuffix, "/ year");
+  // Verify official 5-tier INR catalog prices and pay-for-10-months annual savings (~16.7%)
+  const expectedPlans = [
+    ["STARTER", 299, 2990, "₹299", "₹2,990"],
+    ["GROWTH", 599, 5990, "₹599", "₹5,990"],
+    ["BUSINESS", 1499, 14990, "₹1,499", "₹14,990"],
+    ["ENTERPRISE", 4999, 49990, "₹4,999", "₹49,990"],
+    ["AGENCY", 10499, 104990, "₹10,499", "₹1,04,990"]
+  ];
 
   setSelectedCurrency("INR");
   assert.equal(getCurrencyState().code, "INR");
-  const inrDisplay = formatIndicativeAmount(9.0, "INR");
-  assert.match(inrDisplay, /₹/);
 
-  // Changing display currency must NEVER alter canonical USD amounts
-  const inrMonthly = formatSubscriptionTierPrice(starter, "monthly");
-  assert.equal(inrMonthly.canonicalFormatted, "$9.00");
-  assert.match(inrMonthly.displayFormatted, /₹/);
+  for (const [id, mInr, aInr, mLabel, aLabel] of expectedPlans) {
+    const tier = SUBSCRIPTION_TIERS[id];
+    assert.ok(tier, `Missing tier ${id}`);
+    const savings = calculateAnnualPlanSavings(tier);
+    assert.equal(savings.monthlyInr, mInr);
+    assert.equal(savings.annualInr, aInr);
+    assert.equal(savings.savingsInr, mInr * 2);
+    assert.equal(savings.savingsPercent, 16.7);
 
-  const inrAnnual = formatSubscriptionTierPrice(starter, "annual");
-  assert.equal(inrAnnual.canonicalFormatted, "$108.00");
-  assert.match(inrAnnual.displayFormatted, /₹/);
+    const monthly = formatSubscriptionTierPrice(tier, "monthly", "INR");
+    assert.equal(monthly.canonicalAmountInr, mInr);
+    assert.equal(monthly.canonicalFormatted, mLabel);
+    assert.equal(monthly.displayFormatted, mLabel);
+    assert.equal(monthly.periodSuffix, "/ month");
 
-  setSelectedCurrency("AED");
-  assert.equal(getCurrencyState().code, "AED");
-  setSelectedCurrency("USD");
+    const annual = formatSubscriptionTierPrice(tier, "annual", "INR");
+    assert.equal(annual.canonicalAmountInr, aInr);
+    assert.equal(annual.canonicalFormatted, aLabel);
+    assert.equal(annual.displayFormatted, aLabel);
+    assert.equal(annual.periodSuffix, "/ year");
+    assert.equal(annual.annualSavingsPercent, 16.7);
+  }
+
+  assert.equal(SUBSCRIPTION_TIERS.GROWTH.recommended, true);
+  assert.equal(formatCanonicalInr(104990), "₹1,04,990");
+
+  // Switching display currency converts displayFormatted while preserving canonical INR amounts
+  const growth = SUBSCRIPTION_TIERS.GROWTH;
+  for (const [curr, symRegex] of [
+    ["USD", /\$/],
+    ["EUR", /€/],
+    ["GBP", /£/],
+    ["AED", /AED|د\.إ/]
+  ]) {
+    setSelectedCurrency(curr);
+    assert.equal(getCurrencyState().code, curr);
+    const convertedMonthly = formatSubscriptionTierPrice(growth, "monthly");
+    assert.equal(convertedMonthly.canonicalCurrency, "INR");
+    assert.equal(convertedMonthly.canonicalAmountInr, 599);
+    assert.equal(convertedMonthly.canonicalFormatted, "₹599");
+    assert.match(convertedMonthly.displayFormatted, symRegex);
+
+    const convertedAnnual = formatSubscriptionTierPrice(growth, "annual");
+    assert.equal(convertedAnnual.canonicalCurrency, "INR");
+    assert.equal(convertedAnnual.canonicalAmountInr, 5990);
+    assert.equal(convertedAnnual.canonicalFormatted, "₹5,990");
+    assert.match(formatIndicativeFromInr(599, curr), symRegex);
+    assert.match(convertedAnnual.displayFormatted, symRegex);
+  }
+
+  setSelectedCurrency("INR");
 });
 
 import { createRevealComponent, REVEAL_DEFAULTS, mountRevealAnimations } from "../website/js/scenes/Reveal.js";

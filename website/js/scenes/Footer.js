@@ -129,8 +129,8 @@ const LEGAL_DOCS = {
         p: "Sensitive external operations (such as publishing social posts or dispatching outbound emails) remain gated behind explicit user review and approval. You retain sole responsibility for reviewing generated drafts before publishing."
       },
       {
-        h: "3. Subscription Tiers & Indicative Display Currency",
-        p: "Starter, Growth, and Business plan limits apply per active workspace tier. Display currency conversions (USD, INR, EUR, GBP, AED) are indicative estimates only and do not alter canonical billing amounts."
+        h: "3. Subscription Tiers & Display Currency",
+        p: "Starter, Growth, Business, Enterprise, and Agency plan limits apply per active workspace tier. Canonical subscription pricing is denominated in INR, and display conversions (INR, USD, EUR, GBP, AED) are indicative estimates only."
       }
     ]
   },

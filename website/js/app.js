@@ -70,7 +70,9 @@ const appState = {
     emailType: "Promotional Email",
     adsChannel: "Instagram Ads"
   },
-  onboarding: null
+  onboarding: null,
+  pendingSubscriptionCheckout: null,
+  settingsBillingPeriod: "monthly"
 };
 
 // ---------------- Utilities ----------------
@@ -295,9 +297,17 @@ async function startUserSession(session) {
           appState.screen = "onboarding";
         } else {
           appState.screen = "app";
+          if (appState.pendingSubscriptionCheckout) {
+            appState.activeSection = "settings";
+          }
         }
       }
       render();
+      if (appState.screen === "app" && appState.pendingSubscriptionCheckout) {
+        const pending = appState.pendingSubscriptionCheckout;
+        appState.pendingSubscriptionCheckout = null;
+        requestAnimationFrame(() => openSubscriptionCheckoutModal(pending));
+      }
     },
     (errMsg) => toast(errMsg)
   );
@@ -432,6 +442,164 @@ async function saveAiAsCampaign() {
   }
 }
 
+function handleSubscriptionPlanCheckout(selection) {
+  if (!selection || !selection.tierId) return;
+  appState.pendingSubscriptionCheckout = selection;
+  if (!appState.user) {
+    cleanupLandingExperience();
+    appState.manualLandingPreview = false;
+    authUiState.tab = "signup";
+    authUiState.error = "";
+    authUiState.success = "";
+    toast(
+      `Selected ${selection.displayName} (${selection.billingPeriod}, ${selection.canonicalFormatted}). Sign in or create an account to continue.`
+    );
+    appState.screen = "auth";
+    if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    render();
+    return;
+  }
+  appState.pendingSubscriptionCheckout = null;
+  openSubscriptionCheckoutModal(selection);
+}
+
+function openSubscriptionCheckoutModal(selection) {
+  const tier = SUBSCRIPTION_TIERS[selection?.tierId] || SUBSCRIPTION_TIERS.STARTER;
+  const billingPeriod = selection?.billingPeriod === "annual" ? "annual" : "monthly";
+  const isAnnual = billingPeriod === "annual";
+  const canonicalAmountInr = Number(selection?.canonicalAmountInr) || (isAnnual ? tier.inrAnnual : tier.inrMonthly);
+  const canonicalFormatted =
+    selection?.canonicalFormatted || formatCurrencyAmount(canonicalAmountInr, "INR", "en-IN");
+  const displayCurrency = selection?.displayCurrency || "INR";
+  const displayFormatted = selection?.displayFormatted || canonicalFormatted;
+  const showDisplayDiff = displayCurrency !== "INR" && displayFormatted !== canonicalFormatted;
+  const highlights = Array.isArray(tier.platformHighlights) ? tier.platformHighlights : [];
+  const currentTierId = appState.profile?.subscriptionTier || "STARTER";
+  const isCurrentTier = currentTierId === tier.id;
+
+  openModal(
+    `<div class="modal-card stack" style="width:min(560px,100%);">
+      <div class="row-between" style="align-items:flex-start;gap:0.75rem;">
+        <div>
+          <div class="row-gap" style="align-items:center;">
+            <h3 style="margin:0;">${esc(tier.displayName)} Plan Checkout</h3>
+            ${tier.recommended ? `<span class="badge violet">Recommended</span>` : ""}
+          </div>
+          <div class="muted small" style="margin-top:0.25rem;">
+            ${isAnnual ? "Annual billing (pay for 10 months • ~16.7% savings)" : "Monthly billing"}
+          </div>
+        </div>
+        <button id="checkout-x-btn" class="btn btn-outline btn-sm" type="button" aria-label="Close checkout dialog">Close</button>
+      </div>
+
+      <div class="card" style="padding:1rem;">
+        <div class="row-between" style="flex-wrap:wrap;gap:0.65rem;">
+          <div>
+            <div class="muted small">Canonical Billing Amount</div>
+            <strong style="font-size:1.35rem;">${esc(canonicalFormatted)} ${isAnnual ? "/ year" : "/ month"}</strong>
+            ${
+              showDisplayDiff
+                ? `<div class="muted small">Display estimate (${esc(displayCurrency)}): ${esc(displayFormatted)} ${isAnnual ? "/ year" : "/ month"}</div>`
+                : ""
+            }
+          </div>
+          <span class="badge ${isCurrentTier ? "emerald" : "violet"}">
+            ${isCurrentTier ? "Current Workspace Plan" : `Tier: ${esc(tier.id)}`}
+          </span>
+        </div>
+        <p class="small" style="margin:0.65rem 0 0.5rem;">${esc(tier.featuresSummary)}</p>
+        ${
+          highlights.length
+            ? `<ul class="small muted" style="margin:0;padding-left:1.15rem;display:grid;gap:0.25rem;">
+                ${highlights.map((item) => `<li>${esc(item)}</li>`).join("")}
+              </ul>`
+            : ""
+        }
+      </div>
+
+      <div id="checkout-gateway-status" class="card" style="padding:0.9rem;border-color:rgba(124,58,237,0.35);">
+        <div class="small"><strong>Checkout Integration Point</strong></div>
+        <div class="muted small" style="margin-top:0.25rem;">Checking live server billing configuration...</div>
+      </div>
+
+      <div class="row-between" style="flex-wrap:wrap;gap:0.6rem;">
+        <button id="checkout-close-btn" class="btn btn-outline" type="button">Cancel</button>
+        <button id="checkout-save-plan" class="btn btn-primary" type="button">
+          ${isCurrentTier ? "Confirm Active Workspace Plan" : `Save ${esc(tier.displayName)} Plan to Workspace`}
+        </button>
+      </div>
+    </div>`,
+    async () => {
+      document.getElementById("checkout-x-btn")?.addEventListener("click", closeModal);
+      document.getElementById("checkout-close-btn")?.addEventListener("click", closeModal);
+      document.getElementById("checkout-save-plan")?.addEventListener("click", async () => {
+        const btn = document.getElementById("checkout-save-plan");
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "Saving plan...";
+        }
+        try {
+          await store.updateSubscriptionTier(
+            appState.user.uid,
+            appState.profile?.displayName || "MarketOS Owner",
+            tier.id
+          );
+          toast(
+            `${tier.displayName} (${isAnnual ? "Annual" : "Monthly"} • ${canonicalFormatted}) saved to workspace.`
+          );
+          closeModal();
+          render();
+        } catch (err) {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = `Save ${tier.displayName} Plan to Workspace`;
+          }
+          toast("Failed to save plan selection: " + (err?.message || String(err)));
+        }
+      });
+
+      const statusBox = document.getElementById("checkout-gateway-status");
+      if (statusBox) {
+        try {
+          const res = await fetch("/api/cyton/health", { headers: { Accept: "application/json" } });
+          const health = res.ok ? await res.json() : null;
+          const billing = health?.billing;
+          if (billing?.configured) {
+            statusBox.innerHTML = `
+              <div class="row-between" style="gap:0.5rem;">
+                <strong class="small">Checkout Integration Ready (${esc(billing.mode || "configured")})</strong>
+                <span class="badge emerald">Gateway Configured</span>
+              </div>
+              <div class="muted small" style="margin-top:0.3rem;">
+                Canonical ${esc(canonicalFormatted)} INR checkout payload prepared for ${esc(tier.displayName)} (${esc(billingPeriod)}). Saving updates your workspace tier configuration.
+              </div>`;
+          } else {
+            statusBox.innerHTML = `
+              <div class="row-between" style="gap:0.5rem;">
+                <strong class="small">Checkout Integration Point (${esc(billing?.mode || "development_preview")})</strong>
+                <span class="badge amber">Gateway Not Configured</span>
+              </div>
+              <div class="muted small" style="margin-top:0.3rem;">
+                Server payment processing (STRIPE_SECRET_KEY) is not configured on this environment, so no card charge is simulated. You can save the ${esc(tier.displayName)} (${esc(canonicalFormatted)} INR) selection to your workspace profile now.
+              </div>`;
+          }
+        } catch {
+          statusBox.innerHTML = `
+            <div class="row-between" style="gap:0.5rem;">
+              <strong class="small">Checkout Integration Point (Local Mode)</strong>
+              <span class="badge amber">Offline / Local</span>
+            </div>
+            <div class="muted small" style="margin-top:0.3rem;">
+              No server payment gateway detected. Save ${esc(tier.displayName)} (${esc(canonicalFormatted)} INR) to your workspace configuration without simulated charges.
+            </div>`;
+        }
+      }
+    }
+  );
+}
+
 // ---------------- Render Screens ----------------
 function render() {
   const root = document.getElementById("app-root");
@@ -481,7 +649,8 @@ function render() {
         appState.screen = appState.businesses.length === 0 ? "onboarding" : "app";
         window.scrollTo({ top: 0, behavior: "instant" });
         render();
-      }
+      },
+      onSelectPlanCheckout: (selection) => handleSubscriptionPlanCheckout(selection)
     });
     if (appState.landingScrollTarget) {
       const targetId = appState.landingScrollTarget;
@@ -2870,19 +3039,31 @@ function renderSettings(container, biz) {
     </div>
 
     <div class="card stack">
-      <h3>Subscription Plans</h3>
+      <div class="row-between" style="flex-wrap:wrap;gap:0.5rem;">
+        <div>
+          <h3>Subscription Plans</h3>
+          <div class="muted small">Canonical INR billing converted to ${esc(biz.displayCurrency)} for display</div>
+        </div>
+        <div class="chips">
+          <button type="button" class="chip set-bill-period ${appState.settingsBillingPeriod !== "annual" ? "active" : ""}" data-set-period="monthly">Monthly</button>
+          <button type="button" class="chip set-bill-period ${appState.settingsBillingPeriod === "annual" ? "active" : ""}" data-set-period="annual">Annual (Save ~16.7%)</button>
+        </div>
+      </div>
       ${Object.values(SUBSCRIPTION_TIERS)
         .map((t) => {
-          const conv = convertCurrency(t.usdMonthlyEstimate, "USD", biz.displayCurrency, rates);
+          const isAnnual = appState.settingsBillingPeriod === "annual";
+          const canonicalInr = isAnnual ? t.inrAnnual : t.inrMonthly;
+          const conv = convertCurrency(canonicalInr, "INR", biz.displayCurrency, rates);
           const price = formatCurrencyAmount(conv, biz.displayCurrency, biz.numberFormat);
+          const canonicalLabel = formatCurrencyAmount(canonicalInr, "INR", "en-IN");
           const isCur = currentTier === t.id;
           return `
             <div class="card ${isCur ? "hi" : ""} row-between" style="cursor:pointer;" data-tier="${t.id}">
               <div>
-                <strong>${esc(t.displayName)} • ${esc(price)}/mo</strong>
+                <strong>${esc(t.displayName)} • ${esc(price)}${isAnnual ? "/yr" : "/mo"}${biz.displayCurrency !== "INR" ? ` (${esc(canonicalLabel)} INR)` : ""}</strong>
                 <div class="muted small">${esc(t.featuresSummary)}</div>
               </div>
-              ${isCur ? `<span class="badge violet">Current</span>` : `<span class="badge">Select</span>`}
+              ${isCur ? `<span class="badge violet">Current</span>` : `<span class="badge">Checkout</span>`}
             </div>`;
         })
         .join("")}
@@ -2942,10 +3123,28 @@ function renderSettings(container, biz) {
     });
     toast("Web AI & Firebase settings saved");
   });
+  document.querySelectorAll(".set-bill-period").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      appState.settingsBillingPeriod = btn.dataset.setPeriod === "annual" ? "annual" : "monthly";
+      render();
+    });
+  });
   document.querySelectorAll("[data-tier]").forEach((el) => {
-    el.addEventListener("click", async () => {
-      await store.updateSubscriptionTier(appState.user.uid, appState.profile?.displayName || "MarketOS Owner", el.dataset.tier);
-      toast(`Switched active plan preview to ${SUBSCRIPTION_TIERS[el.dataset.tier].displayName}`);
+    el.addEventListener("click", () => {
+      const tier = SUBSCRIPTION_TIERS[el.dataset.tier] || SUBSCRIPTION_TIERS.STARTER;
+      const isAnnual = appState.settingsBillingPeriod === "annual";
+      const canonicalInr = isAnnual ? tier.inrAnnual : tier.inrMonthly;
+      const conv = convertCurrency(canonicalInr, "INR", biz.displayCurrency, rates);
+      openSubscriptionCheckoutModal({
+        tierId: tier.id,
+        displayName: tier.displayName,
+        billingPeriod: appState.settingsBillingPeriod,
+        canonicalCurrency: "INR",
+        canonicalAmountInr: canonicalInr,
+        canonicalFormatted: formatCurrencyAmount(canonicalInr, "INR", "en-IN"),
+        displayCurrency: biz.displayCurrency,
+        displayFormatted: formatCurrencyAmount(conv, biz.displayCurrency, biz.numberFormat)
+      });
     });
   });
   document.getElementById("set-signout")?.addEventListener("click", async () => {

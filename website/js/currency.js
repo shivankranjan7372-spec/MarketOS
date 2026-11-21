@@ -7,8 +7,8 @@ import {
 const LANDING_CURRENCY_KEY = "marketos_landing_currency";
 
 export const SUPPORTED_LANDING_CURRENCIES = [
-  { code: "USD", symbol: "$", name: "US Dollar", locale: "en-US", flag: "USD" },
   { code: "INR", symbol: "₹", name: "Indian Rupee", locale: "en-IN", flag: "INR" },
+  { code: "USD", symbol: "$", name: "US Dollar", locale: "en-US", flag: "USD" },
   { code: "EUR", symbol: "€", name: "Euro", locale: "de-DE", flag: "EUR" },
   { code: "GBP", symbol: "£", name: "British Pound", locale: "en-GB", flag: "GBP" },
   { code: "AED", symbol: "د.إ", name: "UAE Dirham", locale: "en-AE", flag: "AED" }
@@ -35,7 +35,7 @@ function readPersistedCurrency() {
   } catch {
     // Ignore storage access restrictions
   }
-  return "USD";
+  return "INR";
 }
 
 function writePersistedCurrency(code) {
@@ -49,7 +49,7 @@ function writePersistedCurrency(code) {
 }
 
 export function getCurrencyMeta(code = currencyState.code) {
-  const upper = String(code || "USD").toUpperCase();
+  const upper = String(code || "INR").toUpperCase();
   return SUPPORTED_LANDING_CURRENCIES.find((c) => c.code === upper) || SUPPORTED_LANDING_CURRENCIES[0];
 }
 
@@ -105,68 +105,95 @@ function notifyCurrencySubscribers() {
 }
 
 /**
- * Formats an indicative amount converted from canonical USD.
- * Never mutates the canonical billing USD amount.
+ * Formats an indicative amount converted from canonical INR.
+ * Never mutates the canonical billing INR amount.
  */
-export function formatIndicativeAmount(usdAmount, targetCurrency = currencyState.code, options = {}) {
-  const canonicalUsd = Number(usdAmount) || 0;
+export function formatIndicativeFromInr(inrAmount, targetCurrency = currencyState.code, options = {}) {
+  const canonicalInr = Number(inrAmount) || 0;
   const meta = getCurrencyMeta(targetCurrency);
-  const converted = convertCurrency(canonicalUsd, "USD", meta.code, currencyState.ratesFromUsd);
-  const { minDecimals = 0, maxDecimals } = options;
+  const converted =
+    meta.code === "INR"
+      ? canonicalInr
+      : convertCurrency(canonicalInr, "INR", meta.code, currencyState.ratesFromUsd);
 
-  let computedMax = maxDecimals;
-  if (computedMax === undefined) {
-    if (converted > 0 && converted < 0.1) computedMax = 4;
-    else if (converted > 0 && converted < 2) computedMax = 3;
-    else computedMax = 2;
-  }
+  const isWholeInr = meta.code === "INR" && Number.isInteger(Math.round(converted * 100) / 100) && Math.abs(converted - Math.round(converted)) < 0.005;
+  const defaultMin = isWholeInr ? 0 : 2;
+  const defaultMax = isWholeInr ? 0 : 2;
+  const { minDecimals = defaultMin, maxDecimals = defaultMax } = options;
 
-  const effectiveMin = Math.min(minDecimals, computedMax);
   try {
     return new Intl.NumberFormat(meta.locale, {
       style: "currency",
       currency: meta.code,
-      minimumFractionDigits: effectiveMin,
-      maximumFractionDigits: computedMax
+      minimumFractionDigits: Math.min(minDecimals, maxDecimals),
+      maximumFractionDigits: maxDecimals
     }).format(converted);
   } catch {
-    return `${meta.symbol}${converted.toFixed(computedMax)}`;
+    return `${meta.symbol}${converted.toFixed(maxDecimals)}`;
   }
 }
 
-export function formatCanonicalUsd(usdAmount) {
-  const val = Number(usdAmount) || 0;
-  const maxDecimals = val > 0 && val < 0.1 ? 4 : 2;
-  return new Intl.NumberFormat("en-US", {
+export function formatCanonicalInr(inrAmount) {
+  const val = Number(inrAmount) || 0;
+  const isWhole = Math.abs(val - Math.round(val)) < 0.005;
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: maxDecimals
+    currency: "INR",
+    minimumFractionDigits: isWhole ? 0 : 2,
+    maximumFractionDigits: isWhole ? 0 : 2
   }).format(val);
 }
 
 /**
+ * Computes annual savings directly from actual monthly and annual INR pricing.
+ */
+export function calculateAnnualPlanSavings(tier) {
+  const monthlyInr = Number(tier?.inrMonthly) || 0;
+  const annualInr = Number(tier?.inrAnnual) || monthlyInr * 10;
+  const annualizedMonthlyInr = monthlyInr * 12;
+  const savingsInr = Math.max(0, annualizedMonthlyInr - annualInr);
+  const savingsPercent =
+    annualizedMonthlyInr > 0 ? Math.round((savingsInr / annualizedMonthlyInr) * 1000) / 10 : 0;
+  return {
+    monthlyInr,
+    annualInr,
+    annualizedMonthlyInr,
+    savingsInr,
+    savingsPercent
+  };
+}
+
+/**
  * Formats subscription plan pricing in the selected display currency for monthly or annual billing
- * without altering canonical USD checkout/billing figures.
+ * from canonical INR base prices without altering actual checkout amounts.
  */
 export function formatSubscriptionTierPrice(tier, billingPeriod = "monthly", targetCurrency = currencyState.code) {
   const isAnnual = billingPeriod === "annual";
-  const monthlyUsd = Number(tier?.usdMonthlyEstimate) || 0;
-  const canonicalUsd = isAnnual ? monthlyUsd * 12 : monthlyUsd;
+  const savings = calculateAnnualPlanSavings(tier);
+  const canonicalInr = isAnnual ? savings.annualInr : savings.monthlyInr;
+  const meta = getCurrencyMeta(targetCurrency);
+
   return {
     billingPeriod: isAnnual ? "annual" : "monthly",
-    canonicalUsd,
-    displayFormatted: formatIndicativeAmount(canonicalUsd, targetCurrency),
-    canonicalFormatted: formatCanonicalUsd(canonicalUsd),
-    monthlyCanonicalFormatted: formatCanonicalUsd(monthlyUsd),
-    periodSuffix: isAnnual ? "/ year" : "/ month"
+    canonicalCurrency: "INR",
+    canonicalAmountInr: canonicalInr,
+    canonicalFormatted: formatCanonicalInr(canonicalInr),
+    monthlyCanonicalFormatted: formatCanonicalInr(savings.monthlyInr),
+    displayCurrency: meta.code,
+    displayFormatted: formatIndicativeFromInr(canonicalInr, meta.code),
+    annualSavingsInr: savings.savingsInr,
+    annualSavingsPercent: savings.savingsPercent,
+    annualSavingsFormatted: formatIndicativeFromInr(savings.savingsInr, meta.code),
+    annualSavingsCanonicalFormatted: formatCanonicalInr(savings.savingsInr),
+    periodSuffix: isAnnual ? "/ year" : "/ month",
+    billingFrequencyLabel: isAnnual ? "Billed annually" : "Billed monthly"
   };
 }
 
 export function renderCurrencySelectorHtml(activeCode = currencyState.code, idPrefix = "mos-currency") {
   const current = getCurrencyMeta(activeCode);
   return `
-    <div class="mos-currency-bar" role="group" aria-label="Display currency selector">
+    <div class="mos-currency-bar" role="group" aria-label="Subscription display currency selector">
       <div class="mos-currency-pills">
         ${SUPPORTED_LANDING_CURRENCIES.map(
           (c) => `
@@ -183,7 +210,7 @@ export function renderCurrencySelectorHtml(activeCode = currencyState.code, idPr
         ).join("")}
       </div>
       <div class="mos-currency-rate-meta" data-currency-status>
-        <span>Canonical billing: USD &bull; Display: <strong>${current.code} (${current.symbol})</strong> &bull; ${currencyState.sourceLabel}</span>
+        <span>Canonical pricing: INR (₹) &bull; Display: <strong>${current.code} (${current.symbol})</strong> &bull; ${currencyState.sourceLabel}</span>
       </div>
     </div>
   `;
