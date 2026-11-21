@@ -25,7 +25,8 @@ import {
   savePreferences
 } from "./storage.js";
 import { renderCytonCommandCentre } from "./cyton-ui.js";
-import { renderLuxuryLandingPage } from "./landing.js";
+import { cleanupLandingExperience, renderLandingPage } from "./landing.js";
+import { openLegalDocumentModal } from "./scenes/Footer.js";
 
 const store = new MarketOsWebStore();
 
@@ -191,25 +192,43 @@ function initOnboardingDraft() {
 }
 
 function resolveInitialPublicRoute() {
-  if (typeof window === "undefined") return { screen: "landing", authTab: "signin", section: "" };
+  if (typeof window === "undefined") return { screen: "landing", authTab: "signin", section: "", legalDoc: "" };
   const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase();
   if (path === "/login" || path === "/signin" || hash === "#signin" || hash === "#login") {
-    return { screen: "auth", authTab: "signin", section: "" };
+    return { screen: "auth", authTab: "signin", section: "", legalDoc: "" };
   }
   if (path === "/signup" || path === "/register" || hash === "#signup") {
-    return { screen: "auth", authTab: "signup", section: "" };
+    return { screen: "auth", authTab: "signup", section: "", legalDoc: "" };
+  }
+  if (path === "/privacy") {
+    return { screen: "landing", authTab: "signin", section: "scene-final", legalDoc: "privacy" };
+  }
+  if (path === "/terms") {
+    return { screen: "landing", authTab: "signin", section: "scene-final", legalDoc: "terms" };
   }
   const sectionMap = {
-    "/platform": "platform",
-    "/solutions": "solutions",
-    "/pricing": "pricing",
-    "/about": "about",
-    "/cyton": "cyton"
+    "/platform": "scene-command",
+    "/solutions": "scene-command",
+    "/cyton": "scene-cyton",
+    "/workflow": "scene-automation",
+    "/intelligence": "scene-analytics",
+    "/analytics": "scene-analytics",
+    "/pricing": "scene-pricing",
+    "/about": "scene-final"
   };
   const hashSection = hash ? hash.replace(/^#/, "") : "";
-  const section = sectionMap[path] || (["platform", "solutions", "pricing", "about", "cyton", "intelligence", "automation"].includes(hashSection) ? hashSection : "");
-  return { screen: "landing", authTab: "signin", section };
+  const validHashIds = [
+    "scene-intro",
+    "scene-command",
+    "scene-cyton",
+    "scene-automation",
+    "scene-analytics",
+    "scene-pricing",
+    "scene-final"
+  ];
+  const section = sectionMap[path] || (validHashIds.includes(hashSection) ? hashSection : "");
+  return { screen: "landing", authTab: "signin", section, legalDoc: "" };
 }
 
 // ---------------- Bootstrap ----------------
@@ -231,10 +250,11 @@ async function bootstrap() {
       render();
     } else {
       appState.landingScrollTarget = initialRoute.section || "";
+      appState.pendingLegalDoc = initialRoute.legalDoc || "";
       appState.screen = "landing";
       render();
     }
-  }, 500);
+  }, 450);
 }
 
 async function startUserSession(session) {
@@ -423,9 +443,11 @@ function render() {
   }
 
   if (appState.screen === "landing") {
-    renderLuxuryLandingPage(root, {
+    renderLandingPage(root, {
       isAuthenticated: Boolean(appState.user),
+      activeTierId: appState.profile?.subscriptionTier || "",
       onOpenAuth: (tab = "signin") => {
+        cleanupLandingExperience();
         appState.manualLandingPreview = false;
         authUiState.tab = tab === "signup" ? "signup" : "signin";
         authUiState.error = "";
@@ -435,6 +457,7 @@ function render() {
         render();
       },
       onOpenDashboard: (section = "overview") => {
+        cleanupLandingExperience();
         appState.manualLandingPreview = false;
         if (appState.businesses.length === 0) {
           if (!appState.onboarding) initOnboardingDraft();
@@ -447,6 +470,7 @@ function render() {
         render();
       },
       onExploreSection: (section = "settings") => {
+        cleanupLandingExperience();
         appState.manualLandingPreview = false;
         appState.activeSection = section;
         appState.screen = appState.businesses.length === 0 ? "onboarding" : "app";
@@ -461,8 +485,15 @@ function render() {
         document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     }
+    if (appState.pendingLegalDoc) {
+      const docKey = appState.pendingLegalDoc;
+      appState.pendingLegalDoc = "";
+      requestAnimationFrame(() => openLegalDocumentModal(docKey));
+    }
     return;
   }
+
+  cleanupLandingExperience();
 
   if (appState.screen === "auth") {
     renderAuthScreen(root);

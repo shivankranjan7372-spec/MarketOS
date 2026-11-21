@@ -274,21 +274,43 @@ test("website/js/catalog.js preserves all MarketOS sections and adds complete Cy
 
 import fs from "node:fs";
 import path from "node:path";
-import { renderLuxuryLandingPage } from "../website/js/landing.js";
+import { renderLandingPage, cleanupLandingExperience } from "../website/js/landing.js";
 
-test("MarketOS cinematic luxury landing page preserves assets, copy, and zero fake stats", () => {
-  assert.equal(fs.existsSync(path.resolve("website/assets/hero-yacht.jpg")), true);
+test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes with brand identity & pricing intact", () => {
+  assert.equal(fs.existsSync(path.resolve("website/assets/brand-logo.png")), true);
   assert.equal(fs.existsSync(path.resolve("website/assets/marketos-wordmark.png")), true);
 
   const prevDoc = globalThis.document;
   const prevWin = globalThis.window;
+  const makeMockEl = () => ({
+    style: {},
+    classList: { toggle() {}, remove() {}, add() {} },
+    addEventListener() {},
+    appendChild() {},
+    getContext() {
+      return null;
+    },
+    querySelector() {
+      return null;
+    }
+  });
   globalThis.document = {
-    getElementById: () => ({ addEventListener: () => {}, classList: { toggle() {}, remove() {} } })
+    documentElement: { scrollHeight: 4000 },
+    hidden: false,
+    createElement: makeMockEl,
+    getElementById: makeMockEl,
+    querySelectorAll: () => [],
+    addEventListener: () => {},
+    removeEventListener: () => {}
   };
   globalThis.window = {
     scrollY: 0,
+    innerWidth: 1280,
+    innerHeight: 800,
+    devicePixelRatio: 1,
     addEventListener: () => {},
-    removeEventListener: () => {}
+    removeEventListener: () => {},
+    matchMedia: () => ({ matches: false })
   };
 
   try {
@@ -298,25 +320,39 @@ test("MarketOS cinematic luxury landing page preserves assets, copy, and zero fa
         return [];
       }
     };
-    renderLuxuryLandingPage(mockRoot, {
+    renderLandingPage(mockRoot, {
       isAuthenticated: false,
+      activeTierId: "",
       onOpenAuth: () => {},
       onOpenDashboard: () => {},
       onExploreSection: () => {}
     });
 
-    assert.match(mockRoot.innerHTML, /THE FUTURE OF BUSINESS/);
-    assert.match(mockRoot.innerHTML, /Think Beyond Limits\./);
-    assert.match(mockRoot.innerHTML, /Build Beyond Expectations\./);
-    assert.match(mockRoot.innerHTML, /One intelligent ecosystem\. Endless possibilities\./);
-    assert.match(mockRoot.innerHTML, /Explore MarketOS/);
-    assert.match(mockRoot.innerHTML, /Get Started/);
-    assert.match(mockRoot.innerHTML, /SCROLL TO EXPLORE/);
-    assert.match(mockRoot.innerHTML, /assets\/hero-yacht\.jpg/);
+    assert.match(mockRoot.innerHTML, /Your entire marketing operation\./);
+    assert.match(mockRoot.innerHTML, /Plan smarter\. Create faster\. Grow without the chaos\./);
+    assert.match(mockRoot.innerHTML, /Meet CYTON\./);
+    assert.match(mockRoot.innerHTML, /CYTON, prepare a campaign for our new product\./);
+    assert.match(mockRoot.innerHTML, /Stop managing tools\./);
+    assert.match(mockRoot.innerHTML, /Every campaign\./);
+    assert.match(mockRoot.innerHTML, /ILLUSTRATIVE PREVIEW DATA/);
+    assert.match(mockRoot.innerHTML, /Plan\. Create\. Grow\./);
+    assert.match(mockRoot.innerHTML, /Privacy Policy/);
+    assert.match(mockRoot.innerHTML, /Terms and Conditions/);
+    assert.match(mockRoot.innerHTML, /marketosagency@gmail\.com/);
     assert.match(mockRoot.innerHTML, /assets\/marketos-wordmark\.png/);
-    for (const id of ["platform", "cyton", "solutions", "intelligence", "automation", "pricing", "about"]) {
-      assert.equal(mockRoot.innerHTML.includes(`id="${id}"`), true, `Missing landing section #${id}`);
+
+    for (const id of [
+      "scene-intro",
+      "scene-command",
+      "scene-cyton",
+      "scene-automation",
+      "scene-analytics",
+      "scene-pricing",
+      "scene-final"
+    ]) {
+      assert.equal(mockRoot.innerHTML.includes(`id="${id}"`), true, `Missing 3D scene #${id}`);
     }
+    cleanupLandingExperience();
   } finally {
     if (prevDoc === undefined) delete globalThis.document;
     else globalThis.document = prevDoc;
