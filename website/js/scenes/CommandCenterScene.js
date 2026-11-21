@@ -1,36 +1,32 @@
-import {
-  AI_MODULES,
-  APP_SECTIONS,
-  CYTON_MARKETPLACE_INTEGRATIONS
-} from "../catalog.js";
+import { AI_MODULES, APP_SECTIONS } from "../catalog.js";
 
 const WORKSPACE_CAPABILITIES = [
   {
     id: "workspace",
-    kicker: "C • UNIFIED AI WORKSPACE",
+    kicker: "01 • UNIFIED AI WORKSPACE",
     navTarget: "cyton",
-    badge: "14 Workspaces",
+    badge: `${APP_SECTIONS.length} Workspaces`,
     tabLabel: "Unified Workspace",
-    headline: "Different models. One destination.",
+    headline: "Different capabilities. One destination.",
     subtitle: "CYTON Command Centre + 13 MarketOS Studios",
     summary:
       "Route natural-language goals through CYTON across dedicated Campaign, Social, SEO, Email, Brand, Ads, Calendar, Approval, and Analytics modules without switching disconnected tools.",
     rows: [
-      { label: "Active Studios", value: `${APP_SECTIONS.length} integrated sections synced to Firestore` },
-      { label: "Approval Governance", value: "READ / CREATE automated; PUBLISH / SEND owner-gated" },
-      { label: "Brand Memory", value: "Voice, audience, country & currency auto-injected" }
+      { label: "Active Studios", value: `${APP_SECTIONS.length} synchronized business studios` },
+      { label: "Approval Governance", value: "Drafting automated; external actions owner-gated" },
+      { label: "Brand Memory", value: "Voice, audience, country & currency auto-applied" }
     ]
   },
   {
     id: "platform_features",
-    kicker: "D • PLATFORM FEATURES & STUDIOS",
+    kicker: "02 • PLATFORM FEATURES & STUDIOS",
     navTarget: "campaign_planner",
     badge: "Multi-Studio",
     tabLabel: "Platform Features",
-    headline: "Built for complete marketing execution.",
+    headline: "Built for complete business execution.",
     subtitle: "Campaigns, Social, Email, Brand, Ads & Calendar",
     summary:
-      "Plan multi-channel launches, draft social and email sequences, inspect brand guidelines, schedule content calendars, and track verified Actual vs. Estimate campaign performance.",
+      "Plan multi-channel launches, draft social and email sequences, inspect brand guidelines, schedule content calendars, and track verified Actual vs. Estimate performance.",
     rows: [
       { label: "Creative Studios", value: "Campaigns, Social, Email, Brand & Ads Studios" },
       { label: "Content Calendar", value: "Timezone-aware scheduling & draft pipeline" },
@@ -39,34 +35,34 @@ const WORKSPACE_CAPABILITIES = [
   },
   {
     id: "intelligence",
-    kicker: "E • MARKETOS INTELLIGENCE",
+    kicker: "03 • MARKETOS INTELLIGENCE",
     navTarget: "seo_studio",
-    badge: "Live HTTP + SSRF Safe",
+    badge: "Live Analysis",
     tabLabel: "MarketOS Intelligence",
-    headline: "Real live URL & metadata analysis.",
+    headline: "Real-time web & positioning analysis.",
     subtitle: AI_MODULES.SEO_STUDIO.displayName,
     summary:
-      "Inspect public website titles, H1 tags, meta descriptions, and word counts through SSRF-protected server endpoints (/api/cyton/execute) that block localhost and private IP ranges.",
+      "Inspect public website titles, heading hierarchies, meta descriptions, and content structure through safeguarded analysis channels designed to keep your data accurate.",
     rows: [
-      { label: "Live HTML Audit", value: "Public HTTP/HTTPS metadata & heading extraction" },
-      { label: "Network Security", value: "Private & cloud-metadata IP blocks enforced server-side" },
-      { label: "Honest Output", value: "Never invents domain authority or fabricated traffic" }
+      { label: "Live Page Audit", value: "Public metadata & heading structure extraction" },
+      { label: "Network Safeguards", value: "Strict public-target validation enforced" },
+      { label: "Honest Output", value: "Zero invented traffic or fabricated authority scores" }
     ]
   },
   {
-    id: "ecosystem",
-    kicker: "F • YOUR AI ECOSYSTEM",
-    navTarget: "integrations",
-    badge: `${CYTON_MARKETPLACE_INTEGRATIONS.length} Connectors`,
-    tabLabel: "AI Ecosystem",
-    headline: "One platform. Countless possibilities.",
-    subtitle: "OAuth-first gateways & built-in tools",
+    id: "user_control",
+    kicker: "04 • CENTRALIZED USER CONTROL",
+    navTarget: "settings",
+    badge: "One Account",
+    tabLabel: "User Control",
+    headline: "One account. Centralized workspace governance.",
+    subtitle: "International workspaces & localized display preferences",
     summary:
-      "Connect Gmail, Google Drive, Calendar, Instagram, Facebook, LinkedIn, YouTube, X, Canva, Slack, Notion, Discord, and built-in Web Research or ESP delivery through official OAuth flows.",
+      "Manage multiple business brands from a single MarketOS account with separated regional settings, currency preferences, quota monitoring, and team-ready approval queues.",
     rows: [
-      { label: "OAuth Architecture", value: "Official provider OAuth flows — zero stored passwords" },
-      { label: "Built-In Actions", value: "Live Web Research & Mailto / ESP draft launch active" },
-      { label: "Multi-Provider Gate", value: "Gemini, OpenAI, Claude, OpenRouter & Self-Hosted BYOK" }
+      { label: "Workspace Isolation", value: "Brand assets & campaigns scoped per business" },
+      { label: "Approval Control", value: "Explicit user review prior to publishing or dispatch" },
+      { label: "Quota Clarity", value: "Monthly & annual plan usage tracked transparently" }
     ]
   }
 ];
@@ -77,10 +73,10 @@ export function renderCommandCenterSceneHtml(isAuthenticated = false) {
     <section class="mos-scene mos-scene-command" id="scene-command" data-scene-index="3">
       <div class="mos-container">
         <div class="mos-section-head mos-center-head" data-mos-reveal>
-          <span class="mos-kicker">03 &bull; PLATFORM ARCHITECTURE &amp; CAPABILITIES</span>
+          <span class="mos-kicker">03 &bull; UNIFIED AI WORKSPACE &amp; PLATFORM FEATURES</span>
           <h2>One disciplined workspace.<br /><span class="mos-accent-span">Real AI execution, under your control.</span></h2>
           <p class="mos-lead">
-            Explore how MarketOS unifies model routing, live website intelligence, OAuth ecosystems, and multi-currency governance inside a single interface.
+            Explore how MarketOS unifies creative studios, live intelligence, brand memory, and human approval governance inside a single liquid-glass interface.
           </p>
         </div>
 
@@ -157,7 +153,7 @@ function buildCapabilityPanelBody(cap, isAuthenticated) {
     </div>
 
     <div class="mos-panel-meta-bar">
-      <span>Cloud &amp; Local Repository Sync Ready</span>
+      <span>Cloud-Synchronized Workspace Architecture</span>
       <span>Human Approval Enforced for External Dispatch</span>
     </div>
   `;

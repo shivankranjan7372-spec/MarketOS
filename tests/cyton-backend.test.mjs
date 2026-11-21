@@ -334,9 +334,9 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
 
     assert.match(mockRoot.innerHTML, /Every AI\./);
     assert.match(mockRoot.innerHTML, /One Marketplace\./);
-    assert.match(mockRoot.innerHTML, /Discover the right AI for every workflow\./);
-    assert.match(mockRoot.innerHTML, /Compare AI capabilities\./);
-    assert.match(mockRoot.innerHTML, /Different models\. One destination\./);
+    assert.match(mockRoot.innerHTML, /Discover powerful AI capabilities\./);
+    assert.match(mockRoot.innerHTML, /One intelligent ecosystem\./);
+    assert.match(mockRoot.innerHTML, /Different capabilities\. One destination\./);
     assert.match(mockRoot.innerHTML, /Simple workspace plans in your currency\./);
     assert.match(mockRoot.innerHTML, /Built for clarity, governance, and control\./);
     assert.match(mockRoot.innerHTML, /Plan\. Create\. Grow\./);
@@ -350,16 +350,32 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
     assert.equal(mockRoot.innerHTML.includes("mos-billing-monthly"), true);
     assert.equal(mockRoot.innerHTML.includes("mos-billing-annual"), true);
 
-    // Ensure removed calculators, estimators, and interactive usage demos do not appear
-    assert.equal(mockRoot.innerHTML.includes("mos-pricing-calculator"), false);
-    assert.equal(mockRoot.innerHTML.includes("mos-payg-run-preview"), false);
-    assert.equal(mockRoot.innerHTML.includes("mos-calc-provider"), false);
-    assert.equal(mockRoot.innerHTML.includes("Est. per generation"), false);
+    // Ensure removed calculators, estimators, interactive usage demos, and ALL model/provider names do not appear
+    const lowerHtml = mockRoot.innerHTML.toLowerCase();
+    for (const forbidden of [
+      "mos-pricing-calculator",
+      "mos-payg-run-preview",
+      "mos-calc-provider",
+      "est. per generation",
+      "gemini",
+      "openai",
+      "gpt-4",
+      "claude",
+      "anthropic",
+      "openrouter",
+      "llama-3",
+      "qwen",
+      "byok",
+      "model comparison",
+      "compare ai capabilities"
+    ]) {
+      assert.equal(lowerHtml.includes(forbidden), false, `Forbidden landing content found: ${forbidden}`);
+    }
 
     for (const id of [
       "scene-intro",
       "scene-marketplace",
-      "scene-compare",
+      "scene-ecosystem",
       "scene-command",
       "scene-pricing",
       "scene-trust",

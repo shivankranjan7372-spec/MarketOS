@@ -12,7 +12,7 @@ export function renderFooterSectionHtml(isAuthenticated = false) {
         <span class="mos-kicker">UNIFIED AI MARKETPLACE &amp; WORKSPACE</span>
         <h2 class="mos-final-title">Plan. Create. Grow.</h2>
         <p class="mos-lead mos-final-lead">
-          Discover models, compare capabilities, and run every AI workflow from one MarketOS workspace.
+          Discover AI capabilities, orchestrate workflows, and scale every campaign from one MarketOS workspace.
         </p>
 
         <div class="mos-hero-ctas">
@@ -37,16 +37,16 @@ export function renderFooterSectionHtml(isAuthenticated = false) {
             height="38"
           />
           <p class="mos-footer-copy">
-            MarketOS is the AI marketplace and business operating system powered by multi-provider model routing and CYTON.
+            MarketOS is the unified AI marketplace and business operating system featuring the CYTON Command Centre.
           </p>
         </div>
 
         <div class="mos-footer-col">
           <h4>Product</h4>
           <a href="#scene-intro" data-mos-scroll="scene-intro">Explore</a>
-          <a href="#scene-marketplace" data-mos-scroll="scene-marketplace">Models Marketplace</a>
-          <a href="#scene-compare" data-mos-scroll="scene-compare">Model Comparison</a>
-          <a href="#scene-command" data-mos-scroll="scene-command">Features &amp; Workspace</a>
+          <a href="#scene-marketplace" data-mos-scroll="scene-marketplace">AI Discovery</a>
+          <a href="#scene-ecosystem" data-mos-scroll="scene-ecosystem">AI Ecosystem</a>
+          <a href="#scene-command" data-mos-scroll="scene-command">Unified Workspace</a>
           <a href="#scene-pricing" data-mos-scroll="scene-pricing">Subscription Pricing</a>
         </div>
 
@@ -78,19 +78,19 @@ export function renderFooterSectionHtml(isAuthenticated = false) {
 const LEGAL_DOCS = {
   docs: {
     title: "MarketOS & CYTON Platform Documentation",
-    updated: "Architecture & API Reference",
+    updated: "Platform Architecture Overview",
     sections: [
       {
-        h: "Multi-Provider AI Routing",
-        p: "MarketOS supports Google Gemini, OpenAI, Anthropic Claude, OpenRouter, and OpenAI-compatible self-hosted endpoints. Requests route via /api/cyton/orchestrate or client BYOK keys configured in Settings."
+        h: "Unified Capability Orchestration",
+        p: "MarketOS interprets natural-language goals inside CYTON Command Centre and routes work cleanly across Campaign, Social, SEO, Email, Brand, Ads, and Analytics studios."
       },
       {
-        h: "Approval Gate & Action Classes",
-        p: "Actions classify into READ, CREATE, MODIFY, PUBLISH, SEND, and DELETE. External execution (PUBLISH, SEND, DELETE) enforces an explicit owner approval flag before dispatch."
+        h: "Approval Gate & Governance",
+        p: "Drafting and planning execute within your workspace while sensitive external publishing or outbound communication actions require explicit owner approval before dispatch."
       },
       {
-        h: "Live SEO & Currency Conversion APIs",
-        p: "Public website inspection executes via SSRF-protected /api/cyton/execute (WEBSITE_RESEARCH), and display currency conversion hydrates from Open Exchange Rates with configurable fallback rates."
+        h: "Live Intelligence & Currency Display",
+        p: "Public website inspection validates target safety before extracting metadata, and subscription pricing converts dynamically across USD, INR, EUR, GBP, and AED."
       }
     ]
   },
@@ -100,15 +100,15 @@ const LEGAL_DOCS = {
     sections: [
       {
         h: "1. Data Collected & Purpose",
-        p: "MarketOS stores the business profile, brand guidelines, campaign plans, content drafts, analytics entries, and CYTON conversation history you actively create inside your workspace. Authentication utilizes Firebase Authentication and optional local browser workspaces."
+        p: "MarketOS stores the business profile, brand guidelines, campaign plans, content drafts, analytics entries, and CYTON conversation history you actively create inside your workspace."
       },
       {
-        h: "2. External Integrations & Credentials",
-        p: "MarketOS strictly uses official OAuth integrations when configured and never collects or stores third-party social media account passwords."
+        h: "2. External Connections & Credentials",
+        p: "MarketOS uses authorized workspace connections and never collects or stores third-party social media account passwords."
       },
       {
-        h: "3. AI Processing & User Keys",
-        p: "When using BYOK AI keys saved in your browser settings or configured server providers via /api/cyton/orchestrate, prompts and optional attachments are transmitted solely to fulfill your requested workspace task."
+        h: "3. Workspace AI Processing",
+        p: "Prompts, workspace context, and optional attachments submitted inside MarketOS are processed solely to fulfill your requested business workflow."
       },
       {
         h: "4. Contact",

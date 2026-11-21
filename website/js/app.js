@@ -209,9 +209,11 @@ function resolveInitialPublicRoute() {
   }
   const sectionMap = {
     "/explore": "scene-intro",
+    "/discovery": "scene-marketplace",
     "/models": "scene-marketplace",
     "/marketplace": "scene-marketplace",
-    "/compare": "scene-compare",
+    "/ecosystem": "scene-ecosystem",
+    "/compare": "scene-ecosystem",
     "/platform": "scene-command",
     "/solutions": "scene-command",
     "/features": "scene-command",
@@ -224,7 +226,7 @@ function resolveInitialPublicRoute() {
   const validHashIds = [
     "scene-intro",
     "scene-marketplace",
-    "scene-compare",
+    "scene-ecosystem",
     "scene-command",
     "scene-pricing",
     "scene-trust",

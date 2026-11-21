@@ -115,7 +115,7 @@ function renderTierCardsHtml(tiers, currencyCode, billingPeriod, isAuthenticated
             <li>${tier.monthlyAiLimit} AI generations per month</li>
             <li>Up to ${tier.maxBusinesses} business workspace${tier.maxBusinesses > 1 ? "s" : ""}</li>
             <li>CYTON Command Centre &amp; Approval Gate</li>
-            <li>Multi-provider BYOK &amp; Cloud Sync ready</li>
+            <li>Unified AI Workspace &amp; Cloud Sync ready</li>
           </ul>
 
           <button

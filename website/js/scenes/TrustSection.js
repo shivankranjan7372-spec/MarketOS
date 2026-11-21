@@ -7,15 +7,15 @@ const TRUST_PILLARS = [
   },
   {
     code: "02",
-    title: "Multi-Provider Model Choice",
+    title: "Centralized AI Discovery",
     detail:
-      "Switch cleanly across Google Gemini, OpenAI, Anthropic Claude, OpenRouter, or your own OpenAI-compatible self-hosted endpoints with BYOK support."
+      "Access language, creative, analytical, and automation intelligence through one unified platform without managing separate tools or accounts."
   },
   {
     code: "03",
     title: "Unified Access & Governance",
     detail:
-      "Route content generation, campaign planning, SEO inspection, and approvals from one workspace while external PUBLISH and SEND actions await owner sign-off."
+      "Route content generation, campaign planning, web intelligence, and approvals from one workspace while external publishing actions await owner sign-off."
   },
   {
     code: "04",
@@ -25,9 +25,9 @@ const TRUST_PILLARS = [
   },
   {
     code: "05",
-    title: "Secure Account & OAuth Control",
+    title: "Enterprise-Grade Account Security",
     detail:
-      "Firebase Authentication, scoped Firestore workspace isolation, official OAuth provider connections, and SSRF-protected live URL research."
+      "Isolated workspace authentication, strict permission boundaries, and explicit user authorization before any external communication or campaign executes."
   }
 ];
 
@@ -36,10 +36,10 @@ export function renderTrustSectionHtml() {
     <section class="mos-scene mos-scene-trust" id="scene-trust" data-scene-index="5">
       <div class="mos-container">
         <div class="mos-section-head mos-center-head" data-mos-reveal>
-          <span class="mos-kicker">05 &bull; TRUST &amp; ARCHITECTURAL TRANSPARENCY</span>
+          <span class="mos-kicker">05 &bull; SECURITY, TRUST &amp; GOVERNANCE</span>
           <h2>Built for clarity, governance, and control.</h2>
           <p class="mos-lead">
-            Designed around verifiable engineering standards—real providers, explicit human approvals, and honest multi-currency accounting.
+            Designed around verifiable engineering standards—unified workspace access, explicit human approvals, and honest multi-currency subscription billing.
           </p>
         </div>
 

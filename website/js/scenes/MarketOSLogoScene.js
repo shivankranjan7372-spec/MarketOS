@@ -1,7 +1,7 @@
 const HERO_CAPABILITY_NODES = [
-  { label: "Image Generation", tag: "Vision & Brand Studio", pos: "pos-1" },
+  { label: "Image Generation", tag: "Visual & Brand Direction", pos: "pos-1" },
   { label: "Video Generation", tag: "Scripts & Storyboards", pos: "pos-2" },
-  { label: "Text Intelligence", tag: "Campaigns & Research", pos: "pos-3" },
+  { label: "Text Intelligence", tag: "Campaigns & Strategy", pos: "pos-3" },
   { label: "Audio", tag: "Voice & Podcasts", pos: "pos-4" },
   { label: "Coding", tag: "Workflows & Automation", pos: "pos-5" }
 ];
@@ -40,7 +40,7 @@ export function renderMarketOSLogoSceneHtml(isAuthenticated = false) {
         </h1>
 
         <p class="mos-hero-sub" data-mos-reveal data-mos-reveal-delay="0.12">
-          Discover, compare and access powerful AI models and tools through one intelligent platform. Built for speed, governance, and full workspace control.
+          Discover and access intelligent AI capabilities through one unified platform. Built for clarity, governance, and complete workspace control.
         </p>
 
         <div class="mos-hero-ctas" data-mos-reveal data-mos-reveal-delay="0.18">
@@ -59,7 +59,7 @@ export function renderMarketOSLogoSceneHtml(isAuthenticated = false) {
         </div>
 
         <div class="mos-scene-cue">
-          <button type="button" id="mos-intro-scroll-btn" class="mos-scroll-cue" aria-label="Scroll to AI Marketplace">
+          <button type="button" id="mos-intro-scroll-btn" class="mos-scroll-cue" aria-label="Scroll to AI Discovery">
             <span>SCROLL TO EXPLORE ECOSYSTEM</span>
             <span class="mos-cue-arrow" aria-hidden="true">&darr;</span>
           </button>
@@ -70,7 +70,7 @@ export function renderMarketOSLogoSceneHtml(isAuthenticated = false) {
 }
 
 /**
- * 3D MarketOS Core + Orbiting AI Model Nodes in Three.js
+ * 3D MarketOS Core + Orbiting Neural Nodes & Dynamic Synapse Lattice in Three.js
  */
 export function buildMarketOSHero3DGroup(THREE) {
   const group = new THREE.Group();
@@ -106,7 +106,7 @@ export function buildMarketOSHero3DGroup(THREE) {
   ring2.rotation.z = -0.35;
   group.add(ring1, ring2);
 
-  // Orbiting AI capability / provider nodes
+  // Abstract orbiting neural capability nodes
   const nodeDefs = [
     { radius: 2.35, speed: 0.55, offset: 0.0, color: 0xa855f7, tilt: 0.35 },
     { radius: 2.35, speed: 0.55, offset: (Math.PI * 2) / 3, color: 0xf5f5f7, tilt: 0.35 },
@@ -137,12 +137,23 @@ export function buildMarketOSHero3DGroup(THREE) {
     return nGroup;
   });
 
-  return { group, coreMesh, coreWire, ring1, ring2, nodes };
+  // Dynamic neural link lines connecting core to each orbiting node + ring neighbors
+  const linkCount = nodeDefs.length * 2;
+  const linkPositions = new Float32Array(linkCount * 2 * 3);
+  const linkGeo = new THREE.BufferGeometry();
+  linkGeo.setAttribute("position", new THREE.BufferAttribute(linkPositions, 3));
+  const linkLines = new THREE.LineSegments(
+    linkGeo,
+    new THREE.LineBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.24 })
+  );
+  group.add(linkLines);
+
+  return { group, coreMesh, coreWire, ring1, ring2, nodes, linkLines };
 }
 
 export function updateMarketOSHero3D(rig, { scrollProgress, localProgress, weight, elapsed, pointerX, pointerY }) {
   if (!rig) return;
-  const { group, coreMesh, coreWire, ring1, ring2, nodes } = rig;
+  const { group, coreMesh, coreWire, ring1, ring2, nodes, linkLines } = rig;
   group.visible = weight > 0.01;
   if (!group.visible) return;
 
@@ -167,4 +178,28 @@ export function updateMarketOSHero3D(rig, { scrollProgress, localProgress, weigh
     );
     n.rotation.y = -angle;
   });
+
+  if (linkLines?.geometry?.attributes?.position) {
+    const pos = linkLines.geometry.attributes.position.array;
+    let ptr = 0;
+    for (let i = 0; i < nodes.length; i++) {
+      const a = nodes[i].position;
+      const b = nodes[(i + 1) % nodes.length].position;
+      // Core to node
+      pos[ptr++] = 0;
+      pos[ptr++] = 0;
+      pos[ptr++] = 0;
+      pos[ptr++] = a.x;
+      pos[ptr++] = a.y;
+      pos[ptr++] = a.z;
+      // Node to neighbor
+      pos[ptr++] = a.x;
+      pos[ptr++] = a.y;
+      pos[ptr++] = a.z;
+      pos[ptr++] = b.x;
+      pos[ptr++] = b.y;
+      pos[ptr++] = b.z;
+    }
+    linkLines.geometry.attributes.position.needsUpdate = true;
+  }
 }
