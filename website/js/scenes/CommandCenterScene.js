@@ -124,7 +124,7 @@ export function renderCommandCenterSceneHtml(isAuthenticated = false) {
             </div>
           </div>
 
-          <div class="mos-command-viewport" data-mos-reveal>
+          <div class="mos-command-viewport" data-mos-reveal data-mos-reveal-delay="0.12">
             <div class="mos-saas-frame" id="mos-cmd-frame">
               <div class="mos-saas-chrome">
                 <div class="mos-chrome-left">

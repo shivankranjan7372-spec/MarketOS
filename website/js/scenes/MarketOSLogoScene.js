@@ -2,7 +2,7 @@ export function renderMarketOSLogoSceneHtml(isAuthenticated = false) {
   return `
     <section class="mos-scene mos-scene-intro" id="scene-intro" data-scene-index="0">
       <div class="mos-intro-inner">
-        <div class="mos-intro-badge" data-mos-reveal>
+        <div class="mos-intro-badge" data-mos-reveal data-mos-reveal-y="18">
           <span class="mos-pulse-dot" aria-hidden="true"></span>
           <span>MARKETOS &bull; PLAN &bull; CREATE &bull; GROW</span>
         </div>
@@ -17,16 +17,16 @@ export function renderMarketOSLogoSceneHtml(isAuthenticated = false) {
           />
         </div>
 
-        <h1 class="mos-hero-title" data-mos-reveal>
+        <h1 class="mos-hero-title" data-mos-reveal data-mos-reveal-delay="0.06">
           Your entire marketing operation.<br />
           <span class="mos-accent-span">One intelligent system.</span>
         </h1>
 
-        <p class="mos-hero-sub" data-mos-reveal>
+        <p class="mos-hero-sub" data-mos-reveal data-mos-reveal-delay="0.12">
           Plan smarter. Create faster. Grow without the chaos.
         </p>
 
-        <div class="mos-hero-ctas" data-mos-reveal>
+        <div class="mos-hero-ctas" data-mos-reveal data-mos-reveal-delay="0.18">
           <button type="button" id="mos-hero-explore" class="mos-btn mos-btn-primary">
             Explore MarketOS
           </button>

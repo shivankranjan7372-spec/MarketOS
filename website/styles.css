@@ -2835,16 +2835,20 @@ button, input, select, textarea {
   color: #9696a5;
 }
 
-/* Reveal Helper */
+/* Reveal Helper (Fallback CSS + Framer Motion coordination) */
 [data-mos-reveal] {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: translateY(24px) scale(0.985);
+  transition: opacity 0.72s cubic-bezier(0.22, 1, 0.36, 1), transform 0.72s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 [data-mos-reveal].is-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+}
+
+.mos-motion-ready [data-mos-reveal] {
+  transition: none;
 }
 
 /* Responsive Breakpoints */

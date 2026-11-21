@@ -351,6 +351,7 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
       "scene-final"
     ]) {
       assert.equal(mockRoot.innerHTML.includes(`id="${id}"`), true, `Missing 3D scene #${id}`);
+      assert.equal(mockRoot.innerHTML.includes("data-mos-reveal"), true);
     }
     cleanupLandingExperience();
   } finally {
@@ -360,4 +361,51 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
     else globalThis.window = prevWin;
   }
 });
+
+import { createRevealComponent, REVEAL_DEFAULTS, mountRevealAnimations } from "../website/js/scenes/Reveal.js";
+
+test("Reveal Framer Motion component configures viewport opacity & transform animation with reduced-motion support", () => {
+  const fakeReact = {
+    createElement(tag, props, children) {
+      return { tag, props, children };
+    }
+  };
+  let reducedSetting = false;
+  const fakeFramer = {
+    motion: { div: "motion.div" },
+    useReducedMotion: () => reducedSetting
+  };
+
+  const Reveal = createRevealComponent(fakeReact, fakeFramer);
+  const el = Reveal({ children: "Scene Content", delay: 0.12, y: 32, scale: 0.96, className: "custom" });
+
+  assert.equal(el.tag, "motion.div");
+  assert.deepEqual(el.props.initial, { opacity: 0, y: 32, scale: 0.96 });
+  assert.deepEqual(el.props.whileInView, { opacity: 1, y: 0, scale: 1 });
+  assert.deepEqual(el.props.viewport, { once: true, amount: REVEAL_DEFAULTS.viewportAmount });
+  assert.equal(el.props.transition.delay, 0.12);
+  assert.deepEqual(el.props.transition.ease, [0.22, 1, 0.36, 1]);
+  assert.equal(el.props.className, "mos-reveal-node custom");
+
+  reducedSetting = true;
+  const reducedEl = Reveal({ children: "Reduced" });
+  assert.deepEqual(reducedEl.props.initial, { opacity: 1, y: 0, scale: 1 });
+  assert.equal(reducedEl.props.transition.duration, 0);
+
+  const prevWin = globalThis.window;
+  globalThis.window = { matchMedia: () => ({ matches: true }) };
+  try {
+    const added = [];
+    const unmount = mountRevealAnimations({
+      querySelectorAll: () => [{ classList: { add: (c) => added.push(c) } }]
+    });
+    assert.deepEqual(added, ["is-visible"]);
+    assert.equal(typeof unmount, "function");
+    unmount();
+  } finally {
+    if (prevWin === undefined) delete globalThis.window;
+    else globalThis.window = prevWin;
+  }
+});
+
 

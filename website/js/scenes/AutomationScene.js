@@ -20,7 +20,7 @@ export function renderAutomationSceneHtml() {
           </p>
         </div>
 
-        <div class="mos-pipeline-track" id="mos-pipeline-track" data-mos-reveal>
+        <div class="mos-pipeline-track" id="mos-pipeline-track" data-mos-reveal data-mos-reveal-delay="0.08">
           ${WORKFLOW_NODES.map(
             (node, idx) => `
               <button
@@ -38,7 +38,7 @@ export function renderAutomationSceneHtml() {
           ).join("")}
         </div>
 
-        <div class="mos-pipe-detail-bar" id="mos-pipe-detail" data-mos-reveal>
+        <div class="mos-pipe-detail-bar" id="mos-pipe-detail" data-mos-reveal data-mos-reveal-delay="0.16">
           <div>
             <span class="mos-kicker" style="margin:0;">STAGE 01 &bull; IDEA</span>
             <h3 id="mos-pipe-title">Idea &rarr; Natural-language brief or brand upload</h3>

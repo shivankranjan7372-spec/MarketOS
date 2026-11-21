@@ -59,7 +59,7 @@ export function renderCytonSceneHtml(isAuthenticated = false) {
             </div>
           </div>
 
-          <div class="mos-cyton-console" data-mos-reveal>
+          <div class="mos-cyton-console" data-mos-reveal data-mos-reveal-delay="0.12">
             <div class="mos-console-head">
               <div>
                 <span class="mos-console-label">CYTON OPERATOR PREVIEW</span>

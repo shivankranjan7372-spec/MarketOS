@@ -278,29 +278,9 @@ export function mountThreeDHeroStage({
       };
       window.addEventListener("resize", onResize, { passive: true });
 
-      // GSAP ScrollTrigger triggers for reveals & section progress
+      // GSAP ScrollTrigger coordinates 3D scene progress scrubbing (Framer Motion Reveal owns DOM entrance animations)
       const triggers = [];
       if (ScrollTrigger) {
-        const revealEls = pageEl.querySelectorAll("[data-mos-reveal]");
-        revealEls.forEach((el) => {
-          gsap.fromTo(
-            el,
-            { y: 26, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.72,
-              ease: "power2.out",
-              scrollTrigger: {
-                trigger: el,
-                start: "top 86%",
-                once: true
-              }
-            }
-          );
-        });
-
-        // Subtle scene parallax pinning note: keep scroll natural (no locking) while scrubbing camera
         const mainTrigger = ScrollTrigger.create({
           trigger: pageEl,
           start: "top top",

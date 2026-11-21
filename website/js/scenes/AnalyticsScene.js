@@ -19,7 +19,7 @@ export function renderAnalyticsSceneHtml() {
             </div>
           </div>
 
-          <div class="mos-analytics-grid" data-mos-reveal>
+          <div class="mos-analytics-grid" data-mos-reveal data-mos-reveal-delay="0.12">
             <article class="mos-data-card mos-data-wide">
               <div class="mos-data-top">
                 <div>

@@ -27,7 +27,7 @@ export function renderFooterSectionHtml(isAuthenticated = false) {
     </section>
 
     <footer class="mos-footer">
-      <div class="mos-container mos-footer-grid">
+      <div class="mos-container mos-footer-grid" data-mos-reveal data-mos-reveal-delay="0.08">
         <div class="mos-footer-brand">
           <img
             src="./assets/marketos-wordmark.png"

@@ -6,6 +6,7 @@ import { renderAutomationSceneHtml, bindAutomationSceneEvents } from "./scenes/A
 import { renderAnalyticsSceneHtml } from "./scenes/AnalyticsScene.js";
 import { renderPricingSectionHtml, bindPricingEvents } from "./scenes/PricingSection.js";
 import { renderFooterSectionHtml, bindFooterEvents } from "./scenes/Footer.js";
+import { mountRevealAnimations } from "./scenes/Reveal.js";
 import { mountThreeDHeroStage } from "./scenes/ThreeDHero.js";
 
 let activeLandingCleanup = null;
@@ -79,29 +80,11 @@ export function renderLandingPage(
     else onOpenAuth("signup");
   });
 
-  // Fallback CSS reveal observer for environments without GSAP or offline
-  let revealObserver = null;
-  if (typeof IntersectionObserver !== "undefined") {
-    const revealEls = root.querySelectorAll("[data-mos-reveal]");
-    revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            revealObserver?.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.08 }
-    );
-    revealEls.forEach((el) => revealObserver.observe(el));
-  } else {
-    root.querySelectorAll("[data-mos-reveal]").forEach((el) => el.classList.add("is-visible"));
-  }
-
   const pageEl = document.getElementById("mos-page");
   const stageEl = document.getElementById("mos-3d-stage");
   const loaderEl = document.getElementById("mos-3d-loading");
+
+  const unmountReveals = mountRevealAnimations(root, { pageEl });
 
   const unmount3d = mountThreeDHeroStage({
     pageEl,
@@ -117,9 +100,9 @@ export function renderLandingPage(
   });
 
   activeLandingCleanup = () => {
+    unmountReveals();
     unmount3d();
     cytonCtrl.cleanup();
-    revealObserver?.disconnect();
   };
 
   return activeLandingCleanup;

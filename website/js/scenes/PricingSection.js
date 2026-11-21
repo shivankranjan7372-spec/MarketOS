@@ -28,7 +28,7 @@ export function renderPricingSectionHtml({ isAuthenticated = false, activeTierId
           }
         </div>
 
-        <div class="mos-pricing-grid" data-mos-reveal>
+        <div class="mos-pricing-grid" data-mos-reveal data-mos-reveal-delay="0.1">
           ${tiers
             .map((tier) => {
               const isGrowth = tier.id === "GROWTH";
