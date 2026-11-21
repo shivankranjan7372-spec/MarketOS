@@ -2,94 +2,101 @@ import { AI_MODULES } from "../catalog.js";
 
 const COMMAND_MODULES = [
   {
-    id: "content",
-    badge: "Create Studio",
-    title: "AI Content Generation",
-    navTarget: "social_media",
-    subtitle: `${AI_MODULES.SOCIAL_MEDIA.displayName} & ${AI_MODULES.EMAIL_STUDIO.displayName}`,
-    summary: "Generate brand-aligned posts, reels scripts, captions, email sequences, and long-form briefs grounded in your stored workspace voice.",
-    specs: [
-      { label: "Brand Memory Sync", value: "Active per workspace" },
-      { label: "Formats", value: "Social, Email, SEO Meta, Briefs" },
-      { label: "Draft Governance", value: "Saved before any publish" }
+    id: "planning",
+    sidebarGroup: "CREATE",
+    navTarget: "campaign_planner",
+    badge: "Strategy",
+    title: "Marketing Campaign Planning",
+    subtitle: AI_MODULES.CAMPAIGN_PLANNER.displayName,
+    summary: "Structure launch objectives, channel allocation, and campaign budgets converted seamlessly across workspace billing and display currencies.",
+    previewRows: [
+      { label: "Active Objective", value: "Q4 Product Launch & Brand Rollout" },
+      { label: "Budget Governance", value: "Multi-currency FX trace preserved" },
+      { label: "Lifecycle State", value: "DRAFT -> OWNER REVIEW -> ACTIVE" }
     ]
   },
   {
-    id: "planning",
-    badge: "Strategy",
-    title: "Marketing Campaign Planning",
-    navTarget: "campaign_planner",
-    subtitle: AI_MODULES.CAMPAIGN_PLANNER.displayName,
-    summary: "Structure objectives, multi-channel rollout dates, and budgets automatically converted between billing and workspace display currencies.",
-    specs: [
-      { label: "Multi-Currency FX", value: "Live & Baseline FX Engine" },
-      { label: "Lifecycle States", value: "Draft / Active / Paused" },
-      { label: "Calendar Sync", value: "Timezone-aware slots" }
+    id: "content",
+    sidebarGroup: "CREATE",
+    navTarget: "social_media",
+    badge: "Distribution",
+    title: "AI Content Generation",
+    subtitle: `${AI_MODULES.SOCIAL_MEDIA.displayName} & ${AI_MODULES.EMAIL_STUDIO.displayName}`,
+    summary: "Draft platform-native captions, newsletter sequences, and launch copy grounded automatically in your saved workspace brand voice.",
+    previewRows: [
+      { label: "Brand Memory", value: "Injected from Brand Studio profile" },
+      { label: "Output Formats", value: "Social, Email Draft, SEO Meta, Markdown" },
+      { label: "Publish Gate", value: "Staged in Drafts prior to sign-off" }
     ]
   },
   {
     id: "video",
-    badge: "Motion & Script",
-    title: "Video Generation",
+    sidebarGroup: "CREATE",
     navTarget: "social_media",
-    subtitle: "Reels, Shorts & YouTube Production Briefs",
-    summary: "Assemble shot-by-shot vertical video scripts, hook variations, pacing cues, and YouTube metadata briefs ready for creative production.",
-    specs: [
-      { label: "Channels", value: "YouTube Studio & Reels" },
-      { label: "Deliverable Exports", value: "Markdown & Slide Deck HTML" },
-      { label: "Official Handoff", value: "Script -> Calendar -> Approval" }
+    badge: "Video Briefs",
+    title: "Video Generation & Scripts",
+    subtitle: "Reels, Shorts & YouTube Storyboards",
+    summary: "Compose hook options, timed scene beats, visual direction notes, and channel metadata formatted for editorial production.",
+    previewRows: [
+      { label: "Target Channels", value: "YouTube Studio & Vertical Reels" },
+      { label: "Slide & Brief Export", value: "HTML Presentation & PDF Print" },
+      { label: "Calendar Sync", value: "Timezone-aware launch slots" }
     ]
   },
   {
     id: "image",
-    badge: "Visual Direction",
-    title: "Image Generation",
+    sidebarGroup: "CREATE",
     navTarget: "brand_studio",
+    badge: "Identity",
+    title: "Image & Brand Studio",
     subtitle: AI_MODULES.BRAND_STUDIO.displayName,
-    summary: "Translate campaign positioning into art direction prompts, color system references, multimodal image inspections, and asset briefs.",
-    specs: [
-      { label: "Multimodal Input", value: "Upload product references" },
-      { label: "Palette Context", value: "Workspace Brand Studio" },
-      { label: "Handoff Integrations", value: "Canva & Google Drive OAuth" }
-    ]
-  },
-  {
-    id: "analytics",
-    badge: "Verification",
-    title: "Analytics",
-    navTarget: "analytics",
-    subtitle: AI_MODULES.GROWTH_ANALYST.displayName,
-    summary: "Log verified campaign impressions, clicks, conversions, and spend cleanly separated between Actual Data and Estimates.",
-    specs: [
-      { label: "Integrity Standard", value: "Actual vs. Estimate badges" },
-      { label: "Currency Conversion", value: "Display FX with original trace" },
-      { label: "Auditability", value: "Zero fabricated metrics" }
-    ]
-  },
-  {
-    id: "automation",
-    badge: "Execution",
-    title: "Automation Workflows",
-    navTarget: "approvals",
-    subtitle: "CYTON & Owner Approval Hub",
-    summary: "Chain research, drafting, scheduling, and asset packaging inside tracked workflows where outbound send/publish actions wait for your sign-off.",
-    specs: [
-      { label: "Action Classes", value: "READ / CREATE vs PUBLISH / SEND" },
-      { label: "Human Gate", value: "Explicit owner approval required" },
-      { label: "Activity Log", value: "Full execution audit trail" }
+    summary: "Define persistent visual direction, inspect uploaded product references, and coordinate creative briefs across team workflows.",
+    previewRows: [
+      { label: "Multimodal Inspection", value: "Upload image or brief attachment" },
+      { label: "Brand Guidelines", value: "Voice, audience & visual standards" },
+      { label: "Design Handoff", value: "Canva & Google Drive OAuth ready" }
     ]
   },
   {
     id: "intelligence",
-    badge: "Live Web Fetch",
-    title: "Business Intelligence",
+    sidebarGroup: "CREATE",
     navTarget: "seo_studio",
-    subtitle: `${AI_MODULES.SEO_STUDIO.displayName} & Live Research`,
-    summary: "Inspect public website URLs through MarketOS's SSRF-protected server analyzer to extract titles, H1 structure, and meta descriptions.",
-    specs: [
-      { label: "Endpoint", value: "POST /api/cyton/execute" },
-      { label: "Security", value: "Private/SSRF IP range blocklist" },
-      { label: "Output", value: "Verified SEO & positioning audit" }
+    badge: "Live Fetch",
+    title: "Business Intelligence & SEO",
+    subtitle: AI_MODULES.SEO_STUDIO.displayName,
+    summary: "Run live server-side HTTP inspection on public URLs through SSRF-protected infrastructure to audit titles, H1 tags, and metadata.",
+    previewRows: [
+      { label: "Live Analyzer", value: "Real public URL HTML extraction" },
+      { label: "Security Check", value: "Private & SSRF IP ranges blocked" },
+      { label: "Keyword Strategy", value: "Region & language localized" }
+    ]
+  },
+  {
+    id: "automation",
+    sidebarGroup: "PUBLISH & TRACK",
+    navTarget: "approvals",
+    badge: "Governance",
+    title: "Automation Workflows & Approvals",
+    subtitle: "CYTON Orchestration & Approval Gate",
+    summary: "Queue multi-step marketing execution where internal creation runs automatically while outbound send and publish actions await explicit approval.",
+    previewRows: [
+      { label: "Action Separation", value: "READ/CREATE vs. PUBLISH/SEND" },
+      { label: "Approval Audit", value: "Timestamped owner decision ledger" },
+      { label: "Integrations", value: "Official OAuth flows only" }
+    ]
+  },
+  {
+    id: "analytics",
+    sidebarGroup: "PUBLISH & TRACK",
+    navTarget: "analytics",
+    badge: "Metrics",
+    title: "Analytics & Performance",
+    subtitle: AI_MODULES.GROWTH_ANALYST.displayName,
+    summary: "Track impressions, clicks, conversions, and campaign spend with strict visual separation between verified Actual Data and Estimates.",
+    previewRows: [
+      { label: "Data Policy", value: "Zero fabricated metrics" },
+      { label: "Record Filtering", value: "All / Actual Only / Estimates" },
+      { label: "Currency Engine", value: "Live FX with original currency" }
     ]
   }
 ];
@@ -99,42 +106,48 @@ export function renderCommandCenterSceneHtml(isAuthenticated = false) {
   return `
     <section class="mos-scene mos-scene-command" id="scene-command" data-scene-index="1">
       <div class="mos-container">
-        <div class="mos-split-command">
-          <div class="mos-command-copy" data-mos-reveal>
-            <span class="mos-kicker">02 &bull; MARKETOS COMMAND CENTER</span>
-            <h2>Every marketing discipline inside one living cockpit.</h2>
-            <p class="mos-lead">
-              Select a module below or scroll to inspect the MarketOS interface panels—architected for real business operations across strategy, creation, governance, and growth.
-            </p>
+        <div class="mos-section-head mos-center-head" data-mos-reveal>
+          <span class="mos-kicker">01 &bull; MARKETOS WORKSPACE</span>
+          <h2>One disciplined operating system for your entire marketing team.</h2>
+          <p class="mos-lead">
+            Inspect the live MarketOS product architecture—unifying CYTON, campaign strategy, content studios, approval governance, and multi-currency analytics.
+          </p>
+        </div>
 
-            <div class="mos-module-tabs" role="tablist" aria-label="MarketOS Command Center modules">
-              ${COMMAND_MODULES.map(
-                (mod, idx) => `
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected="${idx === 0}"
-                    class="mos-mod-tab ${idx === 0 ? "active" : ""}"
-                    data-cmd-tab="${mod.id}"
-                  >
-                    <span class="mos-mod-idx">0${idx + 1}</span>
-                    <span>${mod.title}</span>
-                  </button>`
-              ).join("")}
-            </div>
-          </div>
-
-          <div class="mos-command-viewport" data-mos-reveal data-mos-reveal-delay="0.12">
-            <div class="mos-saas-frame" id="mos-cmd-frame">
-              <div class="mos-saas-chrome">
-                <div class="mos-chrome-left">
-                  <span class="mos-chrome-dot"></span>
-                  <span class="mos-chrome-dot"></span>
-                  <span class="mos-chrome-dot"></span>
-                  <span class="mos-chrome-path">marketos.workspace / <strong id="mos-cmd-path">${initial.navTarget}</strong></span>
-                </div>
-                <span class="mos-pill-tag" id="mos-cmd-badge">${initial.badge}</span>
+        <div class="mos-product-stage" id="mos-cmd-perspective-stage" data-mos-reveal data-mos-reveal-delay="0.08">
+          <div class="mos-saas-shell">
+            <div class="mos-saas-chrome">
+              <div class="mos-chrome-left">
+                <span class="mos-chrome-dot"></span>
+                <span class="mos-chrome-dot"></span>
+                <span class="mos-chrome-dot"></span>
+                <span class="mos-chrome-path">marketosai.vercel.app / <strong id="mos-cmd-path">${initial.navTarget}</strong></span>
               </div>
+              <span class="mos-pill-tag" id="mos-cmd-badge">${initial.badge}</span>
+            </div>
+
+            <div class="mos-saas-workspace">
+              <aside class="mos-saas-sidebar" aria-label="MarketOS product modules">
+                <div class="mos-saas-brand">
+                  <img src="./assets/brand-logo.png" alt="MarketOS" width="24" height="24" />
+                  <span>MarketOS</span>
+                </div>
+                <div class="mos-saas-tab-list" role="tablist" aria-label="Workspace modules">
+                  ${COMMAND_MODULES.map(
+                    (mod, idx) => `
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected="${idx === 0}"
+                        class="mos-mod-tab ${idx === 0 ? "active" : ""}"
+                        data-cmd-tab="${mod.id}"
+                      >
+                        <span class="mos-mod-idx">0${idx + 1}</span>
+                        <span>${mod.title}</span>
+                      </button>`
+                  ).join("")}
+                </div>
+              </aside>
 
               <div class="mos-saas-body" id="mos-cmd-detail">
                 ${buildCommandPanelBody(initial, isAuthenticated)}
@@ -151,37 +164,31 @@ function buildCommandPanelBody(mod, isAuthenticated) {
   return `
     <div class="mos-panel-header">
       <div>
-        <div class="mos-panel-sub">${mod.subtitle}</div>
+        <div class="mos-panel-sub">${mod.sidebarGroup} &bull; ${mod.subtitle}</div>
         <h3 class="mos-panel-title">${mod.title}</h3>
       </div>
       <button type="button" class="mos-btn mos-btn-primary mos-btn-sm" data-cmd-open="${mod.navTarget}">
-        ${isAuthenticated ? "Open Module" : "Launch in MarketOS"}
+        ${isAuthenticated ? "Open in Workspace" : "Launch MarketOS"}
       </button>
     </div>
 
     <p class="mos-panel-desc">${mod.summary}</p>
 
-    <div class="mos-spec-grid">
-      ${mod.specs
+    <div class="mos-spec-table">
+      ${mod.previewRows
         .map(
-          (sp) => `
-            <div class="mos-spec-box">
-              <span class="mos-spec-label">${sp.label}</span>
-              <strong class="mos-spec-val">${sp.value}</strong>
+          (row) => `
+            <div class="mos-spec-row">
+              <span>${row.label}</span>
+              <strong>${row.value}</strong>
             </div>`
         )
         .join("")}
     </div>
 
-    <div class="mos-panel-grid-preview">
-      <div class="mos-mini-card">
-        <span>Active Workspace Currency</span>
-        <strong>USD / EUR / INR / GBP</strong>
-      </div>
-      <div class="mos-mini-card">
-        <span>Model Gateway Support</span>
-        <strong>Gemini &bull; OpenAI &bull; Claude</strong>
-      </div>
+    <div class="mos-panel-meta-bar">
+      <span>Synced to Firebase &amp; Android Workspace</span>
+      <span>Active Multi-Currency Support</span>
     </div>
   `;
 }
@@ -218,80 +225,4 @@ export function bindCommandCenterEvents(root, { isAuthenticated, onOpenAuth, onO
       bindAction();
     });
   });
-}
-
-/**
- * 3D Floating Command Center Panel Cluster in Three.js
- */
-export function buildCommandCenter3DGroup(THREE) {
-  const group = new THREE.Group();
-  group.name = "CommandCenterGroup";
-
-  const slateMat = new THREE.MeshStandardMaterial({
-    color: 0x0a0a0f,
-    roughness: 0.35,
-    metalness: 0.72,
-    transparent: true,
-    opacity: 0.9
-  });
-  const accentMat = new THREE.MeshStandardMaterial({
-    color: 0x7c3aed,
-    roughness: 0.25,
-    metalness: 0.5,
-    emissive: 0x6d28d9,
-    emissiveIntensity: 0.55
-  });
-  const borderMat = new THREE.LineBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.55 });
-  const subtleBorderMat = new THREE.LineBasicMaterial({ color: 0x3b3b52, transparent: true, opacity: 0.6 });
-
-  const createPanel = (w, h, d, isPrimary = false) => {
-    const pGroup = new THREE.Group();
-    const box = new THREE.BoxGeometry(w, h, d);
-    const mesh = new THREE.Mesh(box, slateMat);
-    pGroup.add(mesh);
-
-    const edges = new THREE.EdgesGeometry(box);
-    const wire = new THREE.LineSegments(edges, isPrimary ? borderMat : subtleBorderMat);
-    pGroup.add(wire);
-
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(w * 0.72, 0.06, d + 0.02), accentMat);
-    bar.position.set(0, h * 0.34, 0);
-    pGroup.add(bar);
-    return pGroup;
-  };
-
-  const mainPanel = createPanel(3.4, 2.2, 0.09, true);
-  const leftPanel = createPanel(1.55, 1.8, 0.07, false);
-  leftPanel.position.set(-2.65, 0.12, -0.45);
-  leftPanel.rotation.y = 0.32;
-
-  const rightTop = createPanel(1.6, 0.95, 0.07, false);
-  rightTop.position.set(2.65, 0.62, -0.35);
-  rightTop.rotation.y = -0.34;
-
-  const rightBot = createPanel(1.6, 0.95, 0.07, false);
-  rightBot.position.set(2.65, -0.58, -0.35);
-  rightBot.rotation.y = -0.34;
-
-  group.add(mainPanel, leftPanel, rightTop, rightBot);
-  return { group, mainPanel, leftPanel, rightTop, rightBot };
-}
-
-export function updateCommandCenter3D(rig, { localProgress, weight, elapsed, pointerX, pointerY }) {
-  if (!rig) return;
-  const { group, mainPanel, leftPanel, rightTop, rightBot } = rig;
-  group.visible = weight > 0.015;
-  if (!group.visible) return;
-
-  const reveal = Math.min(1, weight * 1.3);
-  group.position.set(pointerX * 0.3, -0.15 + Math.sin(elapsed * 0.9) * 0.07, -1.2 + reveal * 1.4);
-  group.rotation.y = -0.22 + localProgress * 0.44 + pointerX * 0.16;
-  group.rotation.x = 0.08 - pointerY * 0.12;
-  group.scale.setScalar(0.84 + reveal * 0.16);
-
-  const spread = 0.6 + localProgress * 0.5;
-  leftPanel.position.x = -2.45 - spread * 0.35;
-  rightTop.position.x = 2.45 + spread * 0.35;
-  rightBot.position.x = 2.45 + spread * 0.35;
-  mainPanel.position.z = Math.sin(localProgress * Math.PI) * 0.35;
 }

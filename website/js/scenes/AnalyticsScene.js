@@ -9,7 +9,7 @@ export function renderAnalyticsSceneHtml() {
       <div class="mos-container">
         <div class="mos-analytics-layout">
           <div class="mos-analytics-head" data-mos-reveal>
-            <span class="mos-kicker">05 &bull; INTELLIGENCE &amp; ANALYTICS</span>
+            <span class="mos-kicker">04 &bull; INTELLIGENCE &amp; ANALYTICS</span>
             <h2>Every campaign.<br /><span class="mos-accent-span">A smarter next move.</span></h2>
             <p class="mos-lead">
               Evaluate campaign efficiency, channel momentum, and cross-currency spend without guessing. Live workspaces always keep verified actual records isolated from baseline projections.
@@ -32,7 +32,7 @@ export function renderAnalyticsSceneHtml() {
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="mos-line-chart">
                   <defs>
                     <linearGradient id="mosChartFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.38" />
+                      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.32" />
                       <stop offset="100%" stop-color="#7C3AED" stop-opacity="0.0" />
                     </linearGradient>
                   </defs>
@@ -41,7 +41,7 @@ export function renderAnalyticsSceneHtml() {
                     points="${polyPoints}"
                     fill="none"
                     stroke="#A855F7"
-                    stroke-width="2.2"
+                    stroke-width="2"
                     vector-effect="non-scaling-stroke"
                   />
                 </svg>
@@ -85,74 +85,4 @@ export function renderAnalyticsSceneHtml() {
       </div>
     </section>
   `;
-}
-
-/**
- * 3D Illuminated Analytics Monolith Columns in Three.js
- */
-export function buildAnalytics3DGroup(THREE) {
-  const group = new THREE.Group();
-  group.name = "Analytics3DGroup";
-
-  const heights = [0.9, 1.35, 1.65, 2.05, 2.55, 2.95, 3.45];
-  const bars = [];
-  const baseMat = new THREE.MeshStandardMaterial({
-    color: 0x11111a,
-    roughness: 0.3,
-    metalness: 0.72
-  });
-  const topMat = new THREE.MeshStandardMaterial({
-    color: 0x7c3aed,
-    emissive: 0xa855f7,
-    emissiveIntensity: 0.72,
-    roughness: 0.2
-  });
-
-  const curvePts = [];
-  heights.forEach((h, i) => {
-    const x = -2.4 + i * 0.8;
-    const barGroup = new THREE.Group();
-    const box = new THREE.BoxGeometry(0.42, h, 0.42);
-    const mesh = new THREE.Mesh(box, i >= 4 ? topMat : baseMat);
-    mesh.position.y = h / 2;
-    const wire = new THREE.LineSegments(
-      new THREE.EdgesGeometry(box),
-      new THREE.LineBasicMaterial({ color: i >= 4 ? 0xf5f5f7 : 0x7c3aed, transparent: true, opacity: 0.5 })
-    );
-    wire.position.y = h / 2;
-    barGroup.add(mesh, wire);
-    barGroup.position.set(x, -1.6, 0);
-    barGroup.userData = { targetScaleY: 1, index: i };
-    bars.push(barGroup);
-    group.add(barGroup);
-    curvePts.push(new THREE.Vector3(x, h - 1.45, 0.28));
-  });
-
-  const trajCurve = new THREE.CatmullRomCurve3(curvePts);
-  const trajLine = new THREE.Mesh(
-    new THREE.TubeGeometry(trajCurve, 48, 0.035, 8, false),
-    new THREE.MeshBasicMaterial({ color: 0xf5f5f7 })
-  );
-  group.add(trajLine);
-
-  return { group, bars, trajLine };
-}
-
-export function updateAnalytics3D(rig, { localProgress, weight, elapsed, pointerX, pointerY }) {
-  if (!rig) return;
-  const { group, bars, trajLine } = rig;
-  group.visible = weight > 0.015;
-  if (!group.visible) return;
-
-  group.position.set(1.65 + pointerX * 0.25, -0.35 - pointerY * 0.1, -0.6);
-  group.rotation.y = -0.38 + localProgress * 0.28 + pointerX * 0.14;
-  group.scale.setScalar(0.84 + weight * 0.16);
-
-  const rise = Math.min(1, weight * 1.35);
-  bars.forEach((b, i) => {
-    const delayed = Math.max(0.08, Math.min(1, rise * 1.25 - i * 0.06));
-    b.scale.y = delayed;
-    b.position.y = -1.6 + Math.sin(elapsed * 1.1 + i * 0.4) * 0.03;
-  });
-  trajLine.scale.y = rise;
 }

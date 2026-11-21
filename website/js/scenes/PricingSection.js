@@ -16,7 +16,7 @@ export function renderPricingSectionHtml({ isAuthenticated = false, activeTierId
     <section class="mos-scene mos-scene-pricing" id="scene-pricing" data-scene-index="5">
       <div class="mos-container">
         <div class="mos-section-head mos-center-head" data-mos-reveal>
-          <span class="mos-kicker">06 &bull; PRICING &amp; CONVERSION</span>
+          <span class="mos-kicker">05 &bull; PRICING &amp; CONVERSION</span>
           <h2>Clear plans aligned with your MarketOS workspace.</h2>
           <p class="mos-lead">
             Every workspace starts with multi-currency adaptation and full owner governance. Select a tier below to begin or upgrade directly inside Settings.

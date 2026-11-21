@@ -340,6 +340,9 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
     assert.match(mockRoot.innerHTML, /Terms and Conditions/);
     assert.match(mockRoot.innerHTML, /marketosagency@gmail\.com/);
     assert.match(mockRoot.innerHTML, /assets\/marketos-wordmark\.png/);
+    assert.equal(mockRoot.innerHTML.includes("mos-cmd-perspective-stage"), true);
+    assert.equal(mockRoot.innerHTML.includes("mos-3d-stage"), false);
+    assert.equal(mockRoot.innerHTML.includes("Initializing MarketOS 3D Engine"), false);
 
     for (const id of [
       "scene-intro",
@@ -350,7 +353,7 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
       "scene-pricing",
       "scene-final"
     ]) {
-      assert.equal(mockRoot.innerHTML.includes(`id="${id}"`), true, `Missing 3D scene #${id}`);
+      assert.equal(mockRoot.innerHTML.includes(`id="${id}"`), true, `Missing scene #${id}`);
       assert.equal(mockRoot.innerHTML.includes("data-mos-reveal"), true);
     }
     cleanupLandingExperience();
