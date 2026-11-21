@@ -9,15 +9,15 @@ export function renderFooterSectionHtml(isAuthenticated = false) {
           width="280"
           height="66"
         />
-        <span class="mos-kicker">THE AI BUSINESS OPERATING SYSTEM</span>
+        <span class="mos-kicker">UNIFIED AI MARKETPLACE &amp; WORKSPACE</span>
         <h2 class="mos-final-title">Plan. Create. Grow.</h2>
         <p class="mos-lead mos-final-lead">
-          Your next stage of growth starts with MarketOS.
+          Discover models, compare real costs, and run every AI workflow from one MarketOS workspace.
         </p>
 
         <div class="mos-hero-ctas">
-          <button type="button" id="mos-final-start" class="mos-btn mos-btn-primary">
-            ${isAuthenticated ? "Return to Dashboard" : "Start Building"}
+          <button type="button" id="mos-final-start" class="mos-btn mos-btn-liquid">
+            ${isAuthenticated ? "Return to Dashboard" : "Get Started"}
           </button>
           <button type="button" id="mos-final-cyton" class="mos-btn mos-btn-outline">
             ${isAuthenticated ? "Open CYTON" : "Sign In"}
@@ -37,32 +37,33 @@ export function renderFooterSectionHtml(isAuthenticated = false) {
             height="38"
           />
           <p class="mos-footer-copy">
-            MarketOS is the AI Business Operating System for creators, growing businesses, agencies, and modern operators.
+            MarketOS is the AI marketplace and business operating system powered by multi-provider model routing and CYTON.
           </p>
         </div>
 
         <div class="mos-footer-col">
-          <h4>Platform</h4>
-          <a href="#scene-intro" data-mos-scroll="scene-intro">Overview</a>
-          <a href="#scene-command" data-mos-scroll="scene-command">Command Center</a>
-          <a href="#scene-cyton" data-mos-scroll="scene-cyton">CYTON Assistant</a>
-          <a href="#scene-automation" data-mos-scroll="scene-automation">Automation Workflow</a>
-          <a href="#scene-analytics" data-mos-scroll="scene-analytics">Analytics</a>
-          <a href="#scene-pricing" data-mos-scroll="scene-pricing">Pricing</a>
+          <h4>Product</h4>
+          <a href="#scene-intro" data-mos-scroll="scene-intro">Explore</a>
+          <a href="#scene-marketplace" data-mos-scroll="scene-marketplace">Models Marketplace</a>
+          <a href="#scene-payg" data-mos-scroll="scene-payg">Pay-As-You-Go</a>
+          <a href="#scene-command" data-mos-scroll="scene-command">Features &amp; Capabilities</a>
+          <a href="#scene-pricing" data-mos-scroll="scene-pricing">Pricing &amp; Calculator</a>
         </div>
 
         <div class="mos-footer-col">
-          <h4>Legal &amp; Governance</h4>
+          <h4>Documentation &amp; Legal</h4>
+          <a href="#docs" id="mos-legal-docs" data-legal-doc="docs">Documentation</a>
           <a href="/privacy" id="mos-legal-privacy" data-legal-doc="privacy">Privacy Policy</a>
           <a href="/terms" id="mos-legal-terms" data-legal-doc="terms">Terms and Conditions</a>
           <a href="#security" id="mos-legal-security" data-legal-doc="security">OAuth &amp; Security Policy</a>
         </div>
 
         <div class="mos-footer-col">
-          <h4>Contact &amp; Access</h4>
-          <a href="mailto:marketosagency@gmail.com">marketosagency@gmail.com</a>
+          <h4>Support &amp; Access</h4>
+          <a href="mailto:marketosagency@gmail.com">Support: marketosagency@gmail.com</a>
           <a href="/login" id="mos-footer-signin">${isAuthenticated ? "Workspace Dashboard" : "Account Sign In"}</a>
-          <a href="/signup" id="mos-footer-signup">${isAuthenticated ? "CYTON Command Centre" : "Create Account"}</a>
+          <a href="/signup" id="mos-footer-signup">${isAuthenticated ? "Create Workspace" : "Get Started"}</a>
+          <a href="https://marketosai.vercel.app" target="_blank" rel="noopener noreferrer">marketosai.vercel.app</a>
         </div>
       </div>
 
@@ -75,6 +76,24 @@ export function renderFooterSectionHtml(isAuthenticated = false) {
 }
 
 const LEGAL_DOCS = {
+  docs: {
+    title: "MarketOS & CYTON Platform Documentation",
+    updated: "Architecture & API Reference",
+    sections: [
+      {
+        h: "Multi-Provider AI Routing",
+        p: "MarketOS supports Google Gemini, OpenAI, Anthropic Claude, OpenRouter, and OpenAI-compatible self-hosted endpoints. Requests route via /api/cyton/orchestrate or client BYOK keys configured in Settings."
+      },
+      {
+        h: "Approval Gate & Action Classes",
+        p: "Actions classify into READ, CREATE, MODIFY, PUBLISH, SEND, and DELETE. External execution (PUBLISH, SEND, DELETE) enforces an explicit owner approval flag before dispatch."
+      },
+      {
+        h: "Live SEO & Currency Conversion APIs",
+        p: "Public website inspection executes via SSRF-protected /api/cyton/execute (WEBSITE_RESEARCH), and display currency conversion hydrates from Open Exchange Rates with configurable fallback rates."
+      }
+    ]
+  },
   privacy: {
     title: "MarketOS Privacy Policy",
     updated: "Effective November 2026",
@@ -103,15 +122,15 @@ const LEGAL_DOCS = {
     sections: [
       {
         h: "1. Platform Scope",
-        p: "MarketOS provides campaign planning, AI-assisted content drafting, SEO website inspection, analytics tracking, and the CYTON Command Centre as a business productivity operating system."
+        p: "MarketOS provides an AI marketplace interface, campaign planning, AI-assisted content drafting, SEO website inspection, analytics tracking, and the CYTON Command Centre as a business productivity operating system."
       },
       {
         h: "2. Owner Approval & Account Responsibility",
         p: "Sensitive external operations (such as publishing social posts or dispatching outbound emails) remain gated behind explicit user review and approval. You retain sole responsibility for reviewing generated drafts before publishing."
       },
       {
-        h: "3. Subscription Tiers & Billing Preview",
-        p: "Starter, Growth, and Business plan limits apply per active workspace tier. Where payment checkout runs in preview mode, plan changes update workspace tier previews without unauthorized charges."
+        h: "3. Subscription Tiers & Indicative Display Currency",
+        p: "Starter, Growth, and Business plan limits apply per active workspace tier. Display currency conversions (USD, INR, EUR, GBP, AED) are indicative estimates only and do not alter canonical billing amounts."
       }
     ]
   },

@@ -14,7 +14,8 @@ import {
   CYTON_CATEGORIES,
   CYTON_MARKETPLACE_INTEGRATIONS,
   CYTON_MODEL_PROVIDERS,
-  CYTON_SUBSCRIPTION_PLANS
+  CYTON_SUBSCRIPTION_PLANS,
+  MARKETPLACE_GENERATION_TYPES
 } from "../website/js/catalog.js";
 
 function createMockRes() {
@@ -292,6 +293,9 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
     },
     querySelector() {
       return null;
+    },
+    querySelectorAll() {
+      return [];
     }
   });
   globalThis.document = {
@@ -328,29 +332,30 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
       onExploreSection: () => {}
     });
 
-    assert.match(mockRoot.innerHTML, /Your entire marketing operation\./);
-    assert.match(mockRoot.innerHTML, /Plan smarter\. Create faster\. Grow without the chaos\./);
-    assert.match(mockRoot.innerHTML, /Meet CYTON\./);
-    assert.match(mockRoot.innerHTML, /CYTON, prepare a campaign for our new product\./);
-    assert.match(mockRoot.innerHTML, /Stop managing tools\./);
-    assert.match(mockRoot.innerHTML, /Every campaign\./);
-    assert.match(mockRoot.innerHTML, /ILLUSTRATIVE PREVIEW DATA/);
+    assert.match(mockRoot.innerHTML, /Every AI\./);
+    assert.match(mockRoot.innerHTML, /One Marketplace\./);
+    assert.match(mockRoot.innerHTML, /Pay for Intelligence\./);
+    assert.match(mockRoot.innerHTML, /Not Idle Subscriptions\./);
+    assert.match(mockRoot.innerHTML, /Different models\. One destination\./);
+    assert.match(mockRoot.innerHTML, /Transparent pricing in your local currency\./);
+    assert.match(mockRoot.innerHTML, /Built for clarity, governance, and control\./);
     assert.match(mockRoot.innerHTML, /Plan\. Create\. Grow\./);
     assert.match(mockRoot.innerHTML, /Privacy Policy/);
     assert.match(mockRoot.innerHTML, /Terms and Conditions/);
+    assert.match(mockRoot.innerHTML, /Documentation/);
     assert.match(mockRoot.innerHTML, /marketosagency@gmail\.com/);
     assert.match(mockRoot.innerHTML, /assets\/marketos-wordmark\.png/);
+    assert.equal(mockRoot.innerHTML.includes("mos-3d-stage"), true);
     assert.equal(mockRoot.innerHTML.includes("mos-cmd-perspective-stage"), true);
-    assert.equal(mockRoot.innerHTML.includes("mos-3d-stage"), false);
-    assert.equal(mockRoot.innerHTML.includes("Initializing MarketOS 3D Engine"), false);
+    assert.equal(mockRoot.innerHTML.includes("mos-pricing-calculator"), true);
 
     for (const id of [
       "scene-intro",
+      "scene-marketplace",
+      "scene-payg",
       "scene-command",
-      "scene-cyton",
-      "scene-automation",
-      "scene-analytics",
       "scene-pricing",
+      "scene-trust",
       "scene-final"
     ]) {
       assert.equal(mockRoot.innerHTML.includes(`id="${id}"`), true, `Missing scene #${id}`);
@@ -363,6 +368,48 @@ test("MarketOS 3D scroll-driven landing page renders all 7 storyboard scenes wit
     if (prevWin === undefined) delete globalThis.window;
     else globalThis.window = prevWin;
   }
+});
+
+import {
+  SUPPORTED_LANDING_CURRENCIES,
+  setSelectedCurrency,
+  getCurrencyState,
+  formatIndicativeAmount,
+  calculateEstimatedUsageCost
+} from "../website/js/currency.js";
+
+test("Centralized currency selector converts USD, INR, EUR, GBP, AED and calculator computes accurate canonical totals", () => {
+  assert.deepEqual(
+    SUPPORTED_LANDING_CURRENCIES.map((c) => c.code),
+    ["USD", "INR", "EUR", "GBP", "AED"]
+  );
+
+  setSelectedCurrency("USD");
+  assert.equal(getCurrencyState().code, "USD");
+  const usdCalc = calculateEstimatedUsageCost({
+    provider: CYTON_MODEL_PROVIDERS[0],
+    generationType: MARKETPLACE_GENERATION_TYPES[0],
+    quantity: 100
+  });
+  assert.equal(usdCalc.canonicalTotalUsd, "$0.20");
+
+  setSelectedCurrency("INR");
+  assert.equal(getCurrencyState().code, "INR");
+  const inrDisplay = formatIndicativeAmount(9.0, "INR");
+  assert.match(inrDisplay, /₹/);
+
+  // Changing display currency must NEVER alter canonical USD amounts
+  const inrCalc = calculateEstimatedUsageCost({
+    provider: CYTON_MODEL_PROVIDERS[0],
+    generationType: MARKETPLACE_GENERATION_TYPES[0],
+    quantity: 100
+  });
+  assert.equal(inrCalc.canonicalTotalUsd, "$0.20");
+  assert.match(inrCalc.totalFormatted, /₹/);
+
+  setSelectedCurrency("AED");
+  assert.equal(getCurrencyState().code, "AED");
+  setSelectedCurrency("USD");
 });
 
 import { createRevealComponent, REVEAL_DEFAULTS, mountRevealAnimations } from "../website/js/scenes/Reveal.js";

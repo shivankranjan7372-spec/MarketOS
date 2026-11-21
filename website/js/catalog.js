@@ -319,6 +319,10 @@ export const CYTON_MODEL_PROVIDERS = [
     defaultModel: "gemini-2.5-flash",
     models: ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"],
     supportsVision: true,
+    capabilities: ["Text Intelligence", "Coding", "Audio", "Image Generation"],
+    indicativeUsdPer1kTokens: 0.0006,
+    indicativeUsdPerGen: 0.002,
+    latencyProfile: "Fast",
     note: "Multimodal text, image & document analysis via Google AI"
   },
   {
@@ -327,6 +331,10 @@ export const CYTON_MODEL_PROVIDERS = [
     defaultModel: "gpt-4o-mini",
     models: ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini"],
     supportsVision: true,
+    capabilities: ["Text Intelligence", "Coding", "Image Generation", "Audio"],
+    indicativeUsdPer1kTokens: 0.0012,
+    indicativeUsdPerGen: 0.004,
+    latencyProfile: "Balanced",
     note: "Structured reasoning and JSON workflow orchestration"
   },
   {
@@ -335,6 +343,10 @@ export const CYTON_MODEL_PROVIDERS = [
     defaultModel: "claude-3-5-sonnet-latest",
     models: ["claude-3-5-sonnet-latest", "claude-3-5-haiku-latest"],
     supportsVision: true,
+    capabilities: ["Text Intelligence", "Coding"],
+    indicativeUsdPer1kTokens: 0.003,
+    indicativeUsdPerGen: 0.009,
+    latencyProfile: "Deep Reasoning",
     note: "Long-form writing, strategy, and coding execution"
   },
   {
@@ -343,6 +355,10 @@ export const CYTON_MODEL_PROVIDERS = [
     defaultModel: "google/gemini-2.5-flash",
     models: ["google/gemini-2.5-flash", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet"],
     supportsVision: true,
+    capabilities: ["Text Intelligence", "Coding", "Video Generation"],
+    indicativeUsdPer1kTokens: 0.0015,
+    indicativeUsdPerGen: 0.005,
+    latencyProfile: "Routed Multi-Model",
     note: "Multi-model router across open & frontier models"
   },
   {
@@ -351,8 +367,20 @@ export const CYTON_MODEL_PROVIDERS = [
     defaultModel: "llama-3.3-70b-instruct",
     models: ["llama-3.3-70b-instruct", "qwen-2.5-72b-instruct"],
     supportsVision: false,
+    capabilities: ["Text Intelligence", "Coding"],
+    indicativeUsdPer1kTokens: 0.0004,
+    indicativeUsdPerGen: 0.0015,
+    latencyProfile: "Self-Hosted / BYOK",
     note: "Connect your own OpenAI-compatible gateway endpoint"
   }
+];
+
+export const MARKETPLACE_GENERATION_TYPES = [
+  { id: "text_campaign", label: "Campaign & Copy Generation", unitLabel: "generations", avgTokensK: 2.5, multiplier: 1.0 },
+  { id: "seo_intelligence", label: "Live SEO & Page Intelligence", unitLabel: "audits", avgTokensK: 3.5, multiplier: 1.4 },
+  { id: "code_workflow", label: "Structured Code & Automation Brief", unitLabel: "workflows", avgTokensK: 5.0, multiplier: 1.85 },
+  { id: "creative_brief", label: "Image & Brand Studio Brief", unitLabel: "briefs", avgTokensK: 3.0, multiplier: 1.25 },
+  { id: "video_storyboard", label: "Video Script & Storyboard", unitLabel: "scripts", avgTokensK: 4.5, multiplier: 1.65 }
 ];
 
 export const CYTON_SUBSCRIPTION_PLANS = {

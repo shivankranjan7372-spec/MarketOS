@@ -208,23 +208,27 @@ function resolveInitialPublicRoute() {
     return { screen: "landing", authTab: "signin", section: "scene-final", legalDoc: "terms" };
   }
   const sectionMap = {
+    "/explore": "scene-intro",
+    "/models": "scene-marketplace",
+    "/marketplace": "scene-marketplace",
+    "/compare": "scene-payg",
+    "/payg": "scene-payg",
     "/platform": "scene-command",
     "/solutions": "scene-command",
-    "/cyton": "scene-cyton",
-    "/workflow": "scene-automation",
-    "/intelligence": "scene-analytics",
-    "/analytics": "scene-analytics",
+    "/features": "scene-command",
+    "/cyton": "scene-command",
     "/pricing": "scene-pricing",
+    "/trust": "scene-trust",
     "/about": "scene-final"
   };
   const hashSection = hash ? hash.replace(/^#/, "") : "";
   const validHashIds = [
     "scene-intro",
+    "scene-marketplace",
+    "scene-payg",
     "scene-command",
-    "scene-cyton",
-    "scene-automation",
-    "scene-analytics",
     "scene-pricing",
+    "scene-trust",
     "scene-final"
   ];
   const section = sectionMap[path] || (validHashIds.includes(hashSection) ? hashSection : "");

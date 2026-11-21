@@ -1,16 +1,16 @@
 export const STORYBOARD_SCENES = [
-  { id: "scene-intro", label: "Intro", number: "01" },
-  { id: "scene-command", label: "Command", number: "02" },
-  { id: "scene-cyton", label: "CYTON", number: "03" },
-  { id: "scene-automation", label: "Workflow", number: "04" },
-  { id: "scene-analytics", label: "Analytics", number: "05" },
-  { id: "scene-pricing", label: "Pricing", number: "06" },
+  { id: "scene-intro", label: "Explore", number: "01" },
+  { id: "scene-marketplace", label: "Models", number: "02" },
+  { id: "scene-payg", label: "Compare", number: "03" },
+  { id: "scene-command", label: "Features", number: "04" },
+  { id: "scene-pricing", label: "Pricing", number: "05" },
+  { id: "scene-trust", label: "Trust", number: "06" },
   { id: "scene-final", label: "Launch", number: "07" }
 ];
 
 export function renderNavigation({ isAuthenticated = false }) {
   return `
-    <header class="mos-nav" id="mos-nav">
+    <header class="mos-nav mos-glass-nav" id="mos-nav">
       <div class="mos-nav-inner">
         <a href="#scene-intro" class="mos-brand" data-mos-scroll="scene-intro" aria-label="MarketOS Home">
           <img
@@ -23,11 +23,11 @@ export function renderNavigation({ isAuthenticated = false }) {
         </a>
 
         <nav class="mos-nav-links" aria-label="Primary site navigation">
-          <a href="#scene-command" class="mos-nav-link" data-mos-scroll="scene-command">Platform</a>
-          <a href="#scene-cyton" class="mos-nav-link" data-mos-scroll="scene-cyton">CYTON</a>
-          <a href="#scene-automation" class="mos-nav-link" data-mos-scroll="scene-automation">Workflow</a>
-          <a href="#scene-analytics" class="mos-nav-link" data-mos-scroll="scene-analytics">Analytics</a>
+          <a href="#scene-intro" class="mos-nav-link" data-mos-scroll="scene-intro">Explore</a>
+          <a href="#scene-marketplace" class="mos-nav-link" data-mos-scroll="scene-marketplace">Models</a>
+          <a href="#scene-payg" class="mos-nav-link" data-mos-scroll="scene-payg">Compare</a>
           <a href="#scene-pricing" class="mos-nav-link" data-mos-scroll="scene-pricing">Pricing</a>
+          <a href="#scene-command" class="mos-nav-link" data-mos-scroll="scene-command">Features</a>
         </nav>
 
         <div class="mos-nav-actions">
@@ -36,7 +36,7 @@ export function renderNavigation({ isAuthenticated = false }) {
               ? `<button type="button" id="mos-nav-dash" class="mos-btn mos-btn-primary mos-btn-sm">Open Workspace</button>`
               : `
                 <button type="button" id="mos-nav-signin" class="mos-btn mos-btn-ghost mos-btn-sm">Sign In</button>
-                <button type="button" id="mos-nav-start" class="mos-btn mos-btn-primary mos-btn-sm">Start Building</button>
+                <button type="button" id="mos-nav-start" class="mos-btn mos-btn-liquid mos-btn-sm">Get Started</button>
               `
           }
           <button
@@ -52,18 +52,18 @@ export function renderNavigation({ isAuthenticated = false }) {
       </div>
 
       <div class="mos-mobile-drawer" id="mos-mobile-drawer">
-        <a href="#scene-command" class="mos-drawer-link" data-mos-scroll="scene-command">Platform</a>
-        <a href="#scene-cyton" class="mos-drawer-link" data-mos-scroll="scene-cyton">CYTON Assistant</a>
-        <a href="#scene-automation" class="mos-drawer-link" data-mos-scroll="scene-automation">Automation Workflow</a>
-        <a href="#scene-analytics" class="mos-drawer-link" data-mos-scroll="scene-analytics">Intelligence & Analytics</a>
+        <a href="#scene-intro" class="mos-drawer-link" data-mos-scroll="scene-intro">Explore</a>
+        <a href="#scene-marketplace" class="mos-drawer-link" data-mos-scroll="scene-marketplace">Models</a>
+        <a href="#scene-payg" class="mos-drawer-link" data-mos-scroll="scene-payg">Compare</a>
         <a href="#scene-pricing" class="mos-drawer-link" data-mos-scroll="scene-pricing">Pricing</a>
+        <a href="#scene-command" class="mos-drawer-link" data-mos-scroll="scene-command">Features</a>
         <div class="mos-drawer-actions">
           ${
             isAuthenticated
               ? `<button type="button" id="mos-mob-dash" class="mos-btn mos-btn-primary" style="width:100%;">Open Workspace</button>`
               : `
                 <button type="button" id="mos-mob-signin" class="mos-btn mos-btn-outline" style="width:100%;">Sign In</button>
-                <button type="button" id="mos-mob-start" class="mos-btn mos-btn-primary" style="width:100%;">Start Building</button>
+                <button type="button" id="mos-mob-start" class="mos-btn mos-btn-liquid" style="width:100%;">Get Started</button>
               `
           }
         </div>

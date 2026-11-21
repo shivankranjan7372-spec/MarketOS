@@ -1,13 +1,14 @@
+import { hydrateLandingExchangeRates } from "./currency.js";
 import { renderNavigation, renderScrollProgress, bindNavigationEvents } from "./scenes/Navigation.js";
 import { renderMarketOSLogoSceneHtml } from "./scenes/MarketOSLogoScene.js";
+import { renderMarketplaceShowcaseHtml, bindMarketplaceShowcaseEvents } from "./scenes/MarketplaceShowcaseScene.js";
+import { renderPayAsYouGoSceneHtml, bindPayAsYouGoEvents } from "./scenes/PayAsYouGoScene.js";
 import { renderCommandCenterSceneHtml, bindCommandCenterEvents } from "./scenes/CommandCenterScene.js";
-import { renderCytonSceneHtml, bindCytonSceneEvents } from "./scenes/CytonScene.js";
-import { renderAutomationSceneHtml, bindAutomationSceneEvents } from "./scenes/AutomationScene.js";
-import { renderAnalyticsSceneHtml } from "./scenes/AnalyticsScene.js";
 import { renderPricingSectionHtml, bindPricingEvents } from "./scenes/PricingSection.js";
+import { renderTrustSectionHtml } from "./scenes/TrustSection.js";
 import { renderFooterSectionHtml, bindFooterEvents } from "./scenes/Footer.js";
 import { mountRevealAnimations } from "./scenes/Reveal.js";
-import { mountEditorialScrollController } from "./scenes/ThreeDHero.js";
+import { mountThreeDHeroStage } from "./scenes/ThreeDHero.js";
 
 let activeLandingCleanup = null;
 
@@ -16,7 +17,7 @@ export function cleanupLandingExperience() {
     try {
       activeLandingCleanup();
     } catch {
-      // Ignore cleanup errors on already-removed nodes
+      // Ignore cleanup errors on removed DOM nodes
     }
     activeLandingCleanup = null;
   }
@@ -37,16 +38,18 @@ export function renderLandingPage(
 
   root.innerHTML = `
     <div class="mos-page" id="mos-page">
+      <div class="mos-3d-stage" id="mos-3d-stage" aria-hidden="true"></div>
+
       ${renderNavigation({ isAuthenticated })}
       ${renderScrollProgress()}
 
       <main class="mos-story-main">
         ${renderMarketOSLogoSceneHtml(isAuthenticated)}
+        ${renderMarketplaceShowcaseHtml(isAuthenticated)}
+        ${renderPayAsYouGoSceneHtml()}
         ${renderCommandCenterSceneHtml(isAuthenticated)}
-        ${renderCytonSceneHtml(isAuthenticated)}
-        ${renderAutomationSceneHtml()}
-        ${renderAnalyticsSceneHtml()}
         ${renderPricingSectionHtml({ isAuthenticated, activeTierId, billingStatusText })}
+        ${renderTrustSectionHtml()}
         ${renderFooterSectionHtml(isAuthenticated)}
       </main>
     </div>
@@ -62,42 +65,51 @@ export function renderLandingPage(
   };
 
   bindNavigationEvents(root, { isAuthenticated, onOpenAuth, onOpenDashboard, scrollToSection });
+  const marketCtrl = bindMarketplaceShowcaseEvents(root, { isAuthenticated, onOpenAuth, onOpenDashboard });
+  const paygCtrl = bindPayAsYouGoEvents(root);
   bindCommandCenterEvents(root, { isAuthenticated, onOpenAuth, onOpenDashboard });
-  const cytonCtrl = bindCytonSceneEvents(root, { isAuthenticated, onOpenAuth, onOpenDashboard });
-  const autoCtrl = bindAutomationSceneEvents(root);
-  bindPricingEvents(root, { isAuthenticated, onOpenAuth, onExploreSection });
+  const pricingCtrl = bindPricingEvents(root, {
+    isAuthenticated,
+    activeTierId,
+    billingStatusText,
+    onOpenAuth,
+    onExploreSection
+  });
   bindFooterEvents(root, { isAuthenticated, onOpenAuth, onOpenDashboard, scrollToSection });
 
-  document.getElementById("mos-hero-explore")?.addEventListener("click", () => scrollToSection("scene-command"));
-  document.getElementById("mos-intro-scroll-btn")?.addEventListener("click", () => scrollToSection("scene-command"));
+  document.getElementById("mos-hero-explore")?.addEventListener("click", () => scrollToSection("scene-marketplace"));
+  document.getElementById("mos-intro-scroll-btn")?.addEventListener("click", () => scrollToSection("scene-marketplace"));
   document.getElementById("mos-hero-start")?.addEventListener("click", () => {
     if (isAuthenticated) onOpenDashboard("overview");
     else onOpenAuth("signup");
   });
 
   const pageEl = document.getElementById("mos-page");
+  const stageEl = document.getElementById("mos-3d-stage");
 
   const unmountReveals = mountRevealAnimations(root, { pageEl });
-
-  const unmountScroll = mountEditorialScrollController({
+  const unmount3d = mountThreeDHeroStage({
     pageEl,
+    canvasHostEl: stageEl,
     onSceneProgress: (st) => {
       if (st.activeIndex === 2) {
-        cytonCtrl.setStepByScroll(st.localProgress);
-      } else if (st.activeIndex === 3) {
-        autoCtrl.setStageByScroll(st.localProgress);
+        paygCtrl.setStepByScroll(st.localProgress);
       }
     }
   });
 
+  // Hydrate live Open Exchange Rates without blocking initial paint
+  hydrateLandingExchangeRates();
+
   activeLandingCleanup = () => {
     unmountReveals();
-    unmountScroll();
-    cytonCtrl.cleanup();
+    unmount3d();
+    marketCtrl.cleanup();
+    paygCtrl.cleanup();
+    pricingCtrl.cleanup();
   };
 
   return activeLandingCleanup;
 }
 
-// Backwards-compatible alias for any callers importing renderLuxuryLandingPage
 export const renderLuxuryLandingPage = renderLandingPage;
